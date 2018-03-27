@@ -12,8 +12,8 @@ const std::string TEXTURE_SPECULAR = "specular";
 const std::string TEXTURE_EMISSION = "emission";
 
 struct texture {
-    texture(unsigned int id_, std::string type_) : id(id_), type(type_) {}
-    texture(std::string filename, std::string type_);
+    texture(unsigned int id_, std::string type_ = "") : id(id_), type(type_) {}
+    texture(std::string filename, std::string type_ = "");
     texture(const texture& other) = delete;
     texture(texture&& other);
     ~texture();

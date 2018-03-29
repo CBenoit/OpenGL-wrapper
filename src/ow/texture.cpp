@@ -6,7 +6,7 @@
 
 #include <ow/texture.hpp>
 
-ow::texture::texture(const std::string& filename, std::string type_) : type(std::move(type_)) {
+ow::texture::texture(const std::string& filename, std::string type_) : id{}, type(std::move(type_)) {
     // load and generate the texture
     int width, height, nbr_channels;
     stbi_set_flip_vertically_on_load(true);
@@ -47,7 +47,10 @@ ow::texture::texture(const std::string& filename, std::string type_) : type(std:
     stbi_image_free(data);
 }
 
-ow::texture::texture(texture&& other) noexcept : id{std::exchange(other.id, 0)}{}
+ow::texture::texture(texture&& other) noexcept
+        : id{std::exchange(other.id, 0)}
+        , type{std::move(other.type)}
+        {}
 
 ow::texture::~texture() {
     glDeleteTextures(1, &id);

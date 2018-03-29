@@ -9,6 +9,11 @@
 
 #include <ow/shader_program.hpp>
 
+ow::shader_program::shader_program(shader_program&& other) noexcept
+        : checkable(other.p_state)
+        , m_program_id{std::exchange(other.m_program_id, 0)}
+{}
+
 bool ow::shader_program::put(const std::vector<std::pair<GLenum, std::string_view>>& shaders) {
     chk_state();
 

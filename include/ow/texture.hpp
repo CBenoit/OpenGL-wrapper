@@ -7,9 +7,9 @@
 
 namespace ow {
 
-const std::string TEXTURE_DIFFUSE = "diffuse";
-const std::string TEXTURE_SPECULAR = "specular";
-const std::string TEXTURE_EMISSION = "emission";
+constexpr std::string_view TEXTURE_DIFFUSE = "diffuse";
+constexpr std::string_view TEXTURE_SPECULAR = "specular";
+constexpr std::string_view TEXTURE_EMISSION = "emission";
 
 struct texture {
     explicit texture(unsigned int id_, std::string type_ = "") : id(id_), type(std::move(type_)) {}

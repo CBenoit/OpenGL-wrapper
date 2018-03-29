@@ -9,31 +9,29 @@
 #include <ow/mesh.hpp>
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures)
-    : m_vertices(vertices)
-    , m_indices(indices)
-    , m_textures(textures) {
+    : m_VAO{}, m_VBO{}, m_EBO{}
+    , m_vertices(std::move(vertices))
+    , m_indices(std::move(indices))
+    , m_textures(std::move(textures)) {
     setup_mesh();
 }
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices)
-    : m_vertices(vertices)
-    , m_indices(indices)
+    : m_VAO{}, m_VBO{}, m_EBO{}
+    , m_vertices(std::move(vertices))
+    , m_indices(std::move(indices))
     , m_textures() {
     setup_mesh();
 }
 
-ow::mesh::mesh(mesh&& other) {
-    m_VAO = other.m_VAO;
-    m_VBO = other.m_VBO;
-    m_EBO = other.m_EBO;
-    m_vertices = other.m_vertices;
-    m_indices = other.m_indices;
-    m_textures = other.m_textures;
-
-    other.m_VAO = 0;
-    other.m_VBO = 0;
-    other.m_EBO = 0;
-}
+ow::mesh::mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}))
+    : m_VAO{std::exchange(other.m_VAO, 0)}
+    , m_VBO{std::exchange(other.m_VBO, 0)}
+    , m_EBO{std::exchange(other.m_EBO, 0)}
+    , m_vertices{std::move(other.m_vertices)}
+    , m_indices{std::move(other.m_indices)}
+    , m_textures{std::move(other.m_textures)}
+{}
 
 ow::mesh::~mesh() {
     glDeleteVertexArrays(1, &m_VAO);
@@ -67,7 +65,7 @@ void ow::mesh::setup_mesh() {
     glBindVertexArray(0); // unbind the VAO
 }
 
-void ow::mesh::draw(shader_program prog) const {
+void ow::mesh::draw(const shader_program& prog) const {
     prog.use();
 
     unsigned int nbr_diffuse = 0;

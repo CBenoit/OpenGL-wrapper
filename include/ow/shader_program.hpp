@@ -22,6 +22,10 @@ public:
         put(shaders);
     }
 
+    shader_program(const shader_program&) = delete;
+
+    shader_program(shader_program&&) noexcept ;
+
     ~shader_program() {
         if (get_id() != 0) {
             glDeleteProgram(m_program_id);

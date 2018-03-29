@@ -35,8 +35,8 @@ namespace {
     // initialize camera system
     // ------------------------
     ow::camera_fps camera{glm::vec3(0, 0, 3)};
-    auto last_x = static_cast<float>(SCR_WIDTH / 2);
-    auto last_y = static_cast<float>(SCR_HEIGHT / 2);
+    auto last_x = static_cast<float>(SCR_WIDTH) / 2.f;
+    auto last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
     bool first_mouse = true;
 }
 
@@ -79,7 +79,7 @@ int main() {
     float delta_time = 0.0f;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
-        float current_frame = static_cast<float>(glfwGetTime());
+        auto current_frame = static_cast<float>(glfwGetTime());
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 

@@ -18,24 +18,29 @@
 #include <ow/texture.hpp>
 #include <ow/model.hpp>
 
+
 void process_input(GLFWwindow* window, float dt);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
 
-// initialize camera system
-// ------------------------
-ow::camera_fps camera{glm::vec3(0, 0, 3)};
-float last_x = SCR_WIDTH / 2;
-float last_y = SCR_HEIGHT / 2;
-bool first_mouse = true;
+namespace {
 
-int main(int argc, char* argv[]) {
+    // settings
+    constexpr unsigned int SCR_WIDTH = 800;
+    constexpr unsigned int SCR_HEIGHT = 600;
+
+    // initialize camera system
+    // ------------------------
+    ow::camera_fps camera{glm::vec3(0, 0, 3)};
+    auto last_x = static_cast<float>(SCR_WIDTH / 2);
+    auto last_y = static_cast<float>(SCR_HEIGHT / 2);
+    bool first_mouse = true;
+}
+
+int main() {
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -74,7 +79,7 @@ int main(int argc, char* argv[]) {
     float delta_time = 0.0f;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
-        float current_frame = glfwGetTime();
+        float current_frame = static_cast<float>(glfwGetTime());
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
@@ -129,28 +134,31 @@ void process_input(GLFWwindow* window, float dt) {
 
 // glfw: whenever the window size changed (by OS or user resize)
 // this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow*, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouse_callback(GLFWwindow*, double xpos, double ypos) {
+    auto xposf = static_cast<float>(xpos);
+    auto yposf = static_cast<float>(ypos);
+
     if (first_mouse) { // this bool variable is initially set to true
-        last_x = xpos;
-        last_y = ypos;
+        last_x = xposf;
+        last_y = yposf;
         first_mouse = false;
     }
 
-    float xoffset = xpos - last_x;
-    float yoffset = last_y - ypos; // y is reversed
-    last_x = xpos;
-    last_y = ypos;
+    auto xoffset = xposf - last_x;
+    auto yoffset = last_y - yposf; // y is reversed
+    last_x = xposf;
+    last_y = yposf;
 
     camera.process_mouse_movement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera.process_mouse_scroll(yoffset);
+void scroll_callback(GLFWwindow*, double, double yoffset) {
+    camera.process_mouse_scroll(static_cast<float>(yoffset));
 }
 

@@ -77,7 +77,7 @@ void ow::model::process_mesh(aiMesh* mesh, const aiScene *scene) {
     }
 
     // materials
-    if (mesh->mMaterialIndex >= 0) {
+    //if (mesh->mMaterialIndex >= 0) { [if(true)]
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
         std::vector<std::shared_ptr<texture>> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, TEXTURE_DIFFUSE);
@@ -88,7 +88,7 @@ void ow::model::process_mesh(aiMesh* mesh, const aiScene *scene) {
 
         std::vector<std::shared_ptr<texture>> emission_maps = load_material_textures(material, aiTextureType_EMISSIVE, TEXTURE_EMISSION);
         textures.insert(textures.end(), emission_maps.begin(), emission_maps.end());
-    }
+    //}
 
     m_meshes.emplace_back(std::move(vertices), std::move(indices), std::move(textures));
 }

@@ -1,11 +1,12 @@
 #include <string>
 #include <iostream>
+#include <utility>
 
 #include <stb_image.h>
 
 #include <ow/texture.hpp>
 
-ow::texture::texture(std::string filename, std::string type_) : type(type_) {
+ow::texture::texture(const std::string& filename, std::string type_) : type(std::move(type_)) {
     // load and generate the texture
     int width, height, nbr_channels;
     stbi_set_flip_vertically_on_load(true);
@@ -22,6 +23,8 @@ ow::texture::texture(std::string filename, std::string type_) : type(type_) {
         case 4:
             format = GL_RGBA;
             break;
+        default:
+            abort();
         }
 
         glGenTextures(1, &id);
@@ -44,10 +47,7 @@ ow::texture::texture(std::string filename, std::string type_) : type(type_) {
     stbi_image_free(data);
 }
 
-ow::texture::texture(texture&& other) {
-    id = other.id;
-    other.id = 0;
-}
+ow::texture::texture(texture&& other) noexcept : id{std::exchange(other.id, 0)}{}
 
 ow::texture::~texture() {
     glDeleteTextures(1, &id);

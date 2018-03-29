@@ -87,17 +87,17 @@ void ow::mesh::draw(shader_program prog) const {
             number = std::to_string(nbr_emission++);
         }
 
-        prog.set_int((type + "_maps[" + number + "]").c_str(), i);
+        prog.set((type + "_maps[" + number + "]").c_str(), i);
         glBindTexture(GL_TEXTURE_2D, m_textures[i]->id);
     }
-    prog.set_int("nbr_diffuse_maps", nbr_diffuse);
-    prog.set_int("nbr_specular_maps", nbr_specular);
-    prog.set_int("nbr_emission_maps", nbr_emission);
+    prog.set("nbr_diffuse_maps", nbr_diffuse);
+    prog.set("nbr_specular_maps", nbr_specular);
+    prog.set("nbr_emission_maps", nbr_emission);
     glActiveTexture(GL_TEXTURE0);
 
     // draw mesh
     glBindVertexArray(m_VAO);
-    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 

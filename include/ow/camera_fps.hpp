@@ -21,12 +21,14 @@ enum camera_movement {
     DOWN
 };
 
+#define M_PI_FLT static_cast<float>(M_PI)
 // Default camera values
-constexpr float DEFAULT_YAW         = -M_PI / 2.0;
+constexpr float DEFAULT_YAW         = -M_PI_FLT / 2.f;
 constexpr float DEFAULT_PITCH       =  0.0f;
 constexpr float DEFAULT_SPEED       =  2.5f;
 constexpr float DEFAULT_SENSITIVITY =  0.001f;
-constexpr float DEFAULT_FOV         =  M_PI / 4.0;
+constexpr float DEFAULT_FOV         =  M_PI_FLT / 4.f;
+#undef M_PI_FLT
 
 // An abstract camera class that processes input and calculates
 // the corresponding Euler Angles, Vectors and Matrices for use

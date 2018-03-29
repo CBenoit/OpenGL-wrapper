@@ -58,17 +58,17 @@ void ow::camera_fps::process_mouse_scroll(float yoffset) {
     m_fov -= yoffset;
     if (m_fov <= 1.0f) {
         m_fov = 1.0f;
-    } else if (m_fov >= M_PI / 4) {
-        m_fov = M_PI / 4;
+    } else if (m_fov >= static_cast<float>(M_PI) / 4.f) {
+        m_fov = static_cast<float>(M_PI) / 4.f;
     }
 }
 
 void ow::camera_fps::_update_camera_vectors() {
     // Calculate the new Front vector
     glm::vec3 front;
-    front.x = cos(m_yaw) * cos(m_pitch);
-    front.y = sin(m_pitch);
-    front.z = sin(m_yaw) * cos(m_pitch);
+    front.x = std::cos(m_yaw) * std::cos(m_pitch);
+    front.y = std::sin(m_pitch);
+    front.z = std::sin(m_yaw) * std::cos(m_pitch);
 
     // Normalize the vectors, because their length gets closer to 0
     // the more you look up or down which results in slower movement.

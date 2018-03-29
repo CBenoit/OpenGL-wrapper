@@ -23,18 +23,18 @@ public:
         , m_attenuation_linear(attenuation_linear)
         , m_attenuation_quadratic(attenuation_quadratic) {}
 
-    void update_all(const shader_program& prog, glm::mat4 view, std::string uniform_prefix = "point_light.") const override {
+    void update_all(const shader_program& prog, glm::mat4 view, const std::string& uniform_prefix = "point_light.") const override {
         base_light::update_all(prog, view, uniform_prefix);
 
-        prog.set_vec(uniform_prefix + "position", glm::vec3(view * glm::vec4(m_position, 1)));
+        prog.set(uniform_prefix + "position", glm::vec3(view * glm::vec4(m_position, 1)));
 
-        prog.set_float(uniform_prefix + "attenuation_constant", m_attenuation_constant);
-        prog.set_float(uniform_prefix + "attenuation_linear", m_attenuation_linear);
-        prog.set_float(uniform_prefix + "attenuation_quadratic", m_attenuation_quadratic);
+        prog.set(uniform_prefix + "attenuation_constant", m_attenuation_constant);
+        prog.set(uniform_prefix + "attenuation_linear", m_attenuation_linear);
+        prog.set(uniform_prefix + "attenuation_quadratic", m_attenuation_quadratic);
     }
 
     void update_position(const shader_program& prog, glm::mat4 view, std::string uniform_prefix = "point_light.") const {
-        prog.set_vec(uniform_prefix + "position", glm::vec3(view * glm::vec4(m_position, 1)));
+        prog.set(uniform_prefix + "position", glm::vec3(view * glm::vec4(m_position, 1)));
     }
 
     void set_pos(glm::vec3 pos) {

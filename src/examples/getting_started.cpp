@@ -30,7 +30,7 @@ float last_x = SCR_WIDTH / 2;
 float last_y = SCR_HEIGHT / 2;
 bool first_mouse = true;
 
-int main(int argc, char* argv[]) {
+int main() {
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -69,11 +69,14 @@ int main(int argc, char* argv[]) {
 
     // load the texture
     // ----------------
-    auto wooden_texture = std::make_shared<ow::texture>("ressources/textures/wooden_container.jpg");
+    auto wooden_texture = std::make_shared<ow::texture>("resources/textures/wooden_container.jpg");
 
     // load shaders
     // ------------
-    ow::shader_program shader_program{"shaders/vertex_basic.glsl", "shaders/fragment_basic.glsl"};
+    ow::shader_program shader_program{
+            {{GL_VERTEX_SHADER,   "vertex_basic.glsl"}
+            ,{GL_FRAGMENT_SHADER, "fragment_basic.glsl"}
+    }};
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -188,14 +191,14 @@ int main(int argc, char* argv[]) {
     // to (only has to be done once)
     // -------------------------------------------------------------
     shader_program.use();
-    shader_program.set_int("tex", 0);
+    shader_program.set("tex", 0);
 
     // game loop
     // -----------
     float delta_time = 0.0f;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
-        float current_frame = glfwGetTime();
+        auto current_frame = static_cast<float>(glfwGetTime());
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
@@ -228,7 +231,7 @@ int main(int argc, char* argv[]) {
             model = glm::translate(model, cube_positions[i]);
             model = glm::rotate(model, static_cast<float>(0.2 * i), glm::vec3(1.0f, 0.3f, 0.5f));
             glm::mat4 MVP = proj * view * model;
-            shader_program.set_mat("MVP", MVP);
+            shader_program.set("MVP", MVP);
 
             glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
         }
@@ -252,7 +255,7 @@ int main(int argc, char* argv[]) {
 
 // glfw: whenever the window size changed (by OS or user resize)
 // this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow*, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
@@ -284,22 +287,25 @@ void process_input(GLFWwindow* window, float dt) {
     }
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouse_callback(GLFWwindow*, double xpos, double ypos) {
+    auto xposf = static_cast<float>(xpos);
+    auto yposf = static_cast<float>(ypos);
+
     if (first_mouse) { // this bool variable is initially set to true
-        last_x = xpos;
-        last_y = ypos;
+        last_x = xposf;
+        last_y = yposf;
         first_mouse = false;
     }
 
-    float xoffset = xpos - last_x;
-    float yoffset = last_y - ypos; // y is reversed
-    last_x = xpos;
-    last_y = ypos;
+    float xoffset = xposf - last_x;
+    float yoffset = last_y - yposf; // y is reversed
+    last_x = xposf;
+    last_y = yposf;
 
     camera.process_mouse_movement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera.process_mouse_scroll(yoffset);
+void scroll_callback(GLFWwindow*, double /*xoffset*/, double yoffset) {
+    camera.process_mouse_scroll(static_cast<float>(yoffset));
 }
 

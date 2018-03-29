@@ -6,7 +6,7 @@
 
 #include <ow/texture.hpp>
 
-ow::texture::texture(const std::string& filename, std::string type_) : id{}, type(std::move(type_)) {
+ow::texture::texture(const std::string& filename, std::string_view type_) : id{}, type(type_) {
     // load and generate the texture
     int width, height, nbr_channels;
     stbi_set_flip_vertically_on_load(true);

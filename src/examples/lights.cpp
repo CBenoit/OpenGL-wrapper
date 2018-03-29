@@ -32,7 +32,7 @@ float last_x = SCR_WIDTH / 2;
 float last_y = SCR_HEIGHT / 2;
 bool first_mouse = true;
 
-int main(int argc, char* argv[]) {
+int main() {
     // glfw: initialize and configure
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -71,13 +71,16 @@ int main(int argc, char* argv[]) {
 
     // load the texture
     // ----------------
-    auto white_texture = std::make_shared<ow::texture>("ressources/textures/white.jpg", ow::TEXTURE_EMISSION);
-    auto diffuse_map    = std::make_shared<ow::texture>("ressources/textures/container2.png", ow::TEXTURE_DIFFUSE);
-    auto specular_map   = std::make_shared<ow::texture>("ressources/textures/container2_specular.png", ow::TEXTURE_SPECULAR);
+    auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::TEXTURE_EMISSION);
+    auto diffuse_map    = std::make_shared<ow::texture>("resources/textures/container2.png", ow::TEXTURE_DIFFUSE);
+    auto specular_map   = std::make_shared<ow::texture>("resources/textures/container2_specular.png", ow::TEXTURE_SPECULAR);
 
     // load shaders
     // ------------
-    ow::shader_program prog{"shaders/vertex_phong.glsl", "shaders/fragment_phong.glsl"};
+    ow::shader_program prog{
+            {{GL_VERTEX_SHADER, "vertex_phong.glsl"}
+            ,{GL_FRAGMENT_SHADER, "fragment_phong.glsl"}
+    }};
 
     // set up mesh
     // -----------
@@ -191,7 +194,7 @@ int main(int argc, char* argv[]) {
     lights.add_spotlight(spotlight);
 
     prog.use();
-    prog.set_float("materials_shininess", 32);
+    prog.set("materials_shininess", 32.f);
     lights.update_all(prog, glm::mat4());
 
     // game loop
@@ -199,7 +202,7 @@ int main(int argc, char* argv[]) {
     float delta_time = 0.0f;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
-        float current_frame = glfwGetTime();
+        auto current_frame = static_cast<float>(glfwGetTime());
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
 
@@ -221,8 +224,8 @@ int main(int argc, char* argv[]) {
         // create transformations
         glm::mat4 view = camera.get_view_matrix();
         glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT));
-        prog.set_mat("view", view);
-        prog.set_mat("proj", proj);
+        prog.set("view", view);
+        prog.set("proj", proj);
 
         // update lights
         lights.update_position_and_direction(prog, view);
@@ -231,11 +234,11 @@ int main(int argc, char* argv[]) {
         for (auto pt_light : point_lights) {
             glm::mat4 model{1.0f};
             model = glm::translate(model, pt_light->get_pos());
-            model = glm::scale(model, glm::vec3(0.2));
-            prog.set_mat("model", model);
+            model = glm::scale(model, glm::vec3(.2f));
+            prog.set("model", model);
 
-            glm::mat3 normal_matrix = glm::mat3(transpose(inverse(view * model)));
-            prog.set_mat("normal_matrix", normal_matrix);
+            glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+            prog.set("normal_matrix", normal_matrix);
 
             lamp_mesh.draw(prog);
         }
@@ -245,10 +248,10 @@ int main(int argc, char* argv[]) {
             glm::mat4 model{1.0f};
             model = glm::translate(model, cube_positions[i]);
             model = glm::rotate(model, static_cast<float>(0.2 * i), glm::vec3(1.0f, 0.3f, 0.5f));
-            prog.set_mat("model", model);
+            prog.set("model", model);
 
-            glm::mat3 normal_matrix = glm::mat3(transpose(inverse(view * model)));
-            prog.set_mat("normal_matrix", normal_matrix);
+            glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+            prog.set("normal_matrix", normal_matrix);
 
             cube_mesh.draw(prog);
         }
@@ -293,28 +296,31 @@ void process_input(GLFWwindow* window, float dt) {
 
 // glfw: whenever the window size changed (by OS or user resize)
 // this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow*, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+void mouse_callback(GLFWwindow*, double xpos, double ypos) {
+    auto xposf = static_cast<float>(xpos);
+    auto yposf = static_cast<float>(ypos);
+
     if (first_mouse) { // this bool variable is initially set to true
-        last_x = xpos;
-        last_y = ypos;
+        last_x = xposf;
+        last_y = yposf;
         first_mouse = false;
     }
 
-    float xoffset = xpos - last_x;
-    float yoffset = last_y - ypos; // y is reversed
-    last_x = xpos;
-    last_y = ypos;
+    float xoffset = xposf - last_x;
+    float yoffset = last_y - yposf; // y is reversed
+    last_x = xposf;
+    last_y = yposf;
 
     camera.process_mouse_movement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera.process_mouse_scroll(yoffset);
+void scroll_callback(GLFWwindow*, double, double yoffset) {
+    camera.process_mouse_scroll(static_cast<float>(yoffset));
 }
 

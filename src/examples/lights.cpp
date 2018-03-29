@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 
     // load shaders
     // ------------
-    ow::shader_program prog{"shaders/phong.vs", "shaders/phong.fs"};
+    ow::shader_program prog{"shaders/vertex_phong.glsl", "shaders/fragment_phong.glsl"};
 
     // set up mesh
     // -----------

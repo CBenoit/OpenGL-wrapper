@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // load shaders
     // ------------
-    ow::shader_program shader_program{"shaders/basic.vs", "shaders/basic.fs"};
+    ow::shader_program shader_program{"shaders/vertex_basic.glsl", "shaders/fragment_basic.glsl"};
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------

@@ -1,5 +1,4 @@
-#ifndef IN55_CHECKABLE_HPP
-#define IN55_CHECKABLE_HPP
+#pragma once
 
 #include <ow/exceptions.hpp>
 
@@ -21,6 +20,3 @@ namespace ow {
         bool p_state;
     };
 }
-
-
-#endif

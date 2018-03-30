@@ -27,8 +27,8 @@ const unsigned int SCR_HEIGHT = 600;
 // initialize camera system
 // ------------------------
 ow::camera_fps camera{glm::vec3(0, 0, 3)};
-float last_x = SCR_WIDTH / 2;
-float last_y = SCR_HEIGHT / 2;
+float last_x = static_cast<float>(SCR_WIDTH) / 2.f;
+float last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
 bool first_mouse = true;
 
 int main() {

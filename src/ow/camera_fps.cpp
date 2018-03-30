@@ -1,5 +1,6 @@
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -46,10 +47,7 @@ void ow::camera_fps::process_mouse_movement(float xoffset, float yoffset, GLbool
 
     // Make sure that when pitch is out of bounds, screen doesn't get flipped
     if (constrain_pitch) {
-        if (m_pitch > glm::radians(89.0f))
-            m_pitch = glm::radians(89.0f);
-        if (m_pitch < glm::radians(-89.0f))
-            m_pitch = glm::radians(-89.0f);
+        m_pitch = std::clamp(m_pitch, glm::radians(-89.f), glm::radians(89.f));
     }
 
     // Update front, right and up Vectors using the updated Euler angles

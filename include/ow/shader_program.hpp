@@ -51,19 +51,19 @@ public:
         using namespace std;
         using namespace glm;
 
-        if constexpr (is_same_v<GLboolean, T> || is_same_v<bool, T>) {
-            glUniform1i(glGetUniformLocation(m_program_id, name.data()), static_cast<int>(value));
+        if constexpr (is_same_v<bool, T>) {
+            glUniform1i(glGetUniformLocation(m_program_id, name.data()), value ? GL_TRUE : GL_FALSE);
 
-        } else if constexpr (is_same_v<GLint, T>) {
+        } else if constexpr (is_same_v<int, T>) {
             glUniform1i(glGetUniformLocation(m_program_id, name.data()), value);
 
-        } else if constexpr (is_same_v<GLfloat, T>) {
+        } else if constexpr (is_same_v<float, T>) {
             glUniform1f(glGetUniformLocation(m_program_id, name.data()), value);
 
-        } else if constexpr (is_same_v<GLuint, T> || is_same_v<size_t, T>) {
-            glUniform1ui(glGetUniformLocation(m_program_id, name.data()), static_cast<GLuint>(value));
+        } else if constexpr (is_same_v<unsigned int, T> || is_same_v<unsigned long, T>) {
+            glUniform1ui(glGetUniformLocation(m_program_id, name.data()), static_cast<unsigned int>(value));
 
-        } else if constexpr (is_same_v<tuple<GLfloat, GLfloat, GLfloat, GLfloat>, T>) {
+        } else if constexpr (is_same_v<tuple<float, float, float, float>, T>) {
             glUniform4f(glGetUniformLocation(m_program_id, name.data()),
                         get<0>(value),
                         get<1>(value),
@@ -71,14 +71,14 @@ public:
                         get<3>(value)
             );
 
-        } else if constexpr (is_same_v<tuple<GLfloat, GLfloat, GLfloat>, T>) {
+        } else if constexpr (is_same_v<tuple<float, float, float>, T>) {
             glUniform3f(glGetUniformLocation(m_program_id, name.data()),
                         get<0>(value),
                         get<1>(value),
                         get<2>(value)
             );
 
-        } else if constexpr (is_same_v<tuple<GLfloat, GLfloat>, T>) {
+        } else if constexpr (is_same_v<tuple<float, float>, T>) {
             glUniform2f(glGetUniformLocation(m_program_id, name.data()),
                         get<0>(value),
                         get<1>(value)

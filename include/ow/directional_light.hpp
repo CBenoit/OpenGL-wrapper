@@ -8,7 +8,7 @@ namespace ow {
 
 class directional_light : public base_light {
 public:
-    directional_light(glm::vec3 direction, glm::vec3 ambient = glm::vec3(0.2f))
+    explicit directional_light(glm::vec3 direction, glm::vec3 ambient = glm::vec3(0.2f))
         : base_light()
         , m_direction(direction)
         , m_ambient(ambient) {}

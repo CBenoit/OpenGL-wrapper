@@ -24,18 +24,26 @@ ow::camera_fps::camera_fps(glm::vec3 position, glm::vec3 up, float yaw, float pi
 
 void ow::camera_fps::process_movement(camera_movement direction, float dt) {
     float velocity = m_mov_speed * dt;
-    if (direction == FORWARD)
+    switch (direction) {
+    case FORWARD:
         m_pos += m_front * velocity;
-    if (direction == BACKWARD)
+        break;
+    case BACKWARD:
         m_pos -= m_front * velocity;
-    if (direction == LEFT)
+        break;
+    case LEFT:
         m_pos -= m_right * velocity;
-    if (direction == RIGHT)
+        break;
+    case RIGHT:
         m_pos += m_right * velocity;
-    if (direction == UP)
+        break;
+    case UP:
         m_pos += m_up * velocity;
-    if (direction == DOWN)
+        break;
+    case DOWN:
         m_pos -= m_up * velocity;
+        break;
+    }
 }
 
 void ow::camera_fps::process_mouse_movement(float xoffset, float yoffset, GLboolean constrain_pitch) {

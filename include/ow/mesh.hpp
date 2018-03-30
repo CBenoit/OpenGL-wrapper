@@ -16,7 +16,7 @@ public:
     mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures);
     mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices);
     mesh(const mesh& other) = delete;
-    mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}));
+    mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::move(std::vector<vertex>{})}));
     ~mesh();
     mesh& operator=(const mesh& other) = delete;
 

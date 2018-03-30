@@ -66,14 +66,46 @@ bool ow::shader_program::load_shader(GLuint shader, std::string_view file_name) 
 }
 
 bool ow::shader_program::checked_compile(GLuint shader, std::string_view shader_file) {
+    const std::string failed_compile_status =
+            "\tError while retrieving compile status for shader " + std::to_string(shader) + ". ";
+    
     glCompileShader(shader);
+    check_errors("Error while compiling shader " + std::to_string(shader) + ". ");
 
     int success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    check_errors(failed_compile_status);
+
     if (!success || glGetError() != GL_NO_ERROR) {
-        char log[512] = "\0";
-        glGetShaderInfoLog(shader, 512, nullptr, log);
-        std::cout << "[" << shader_file << "] : Failed to compile : " << log << std::endl;
+        std::cout << "[" << shader_file << "] : Failed to compile :\n";
+        GLsizei written  = 0;
+        char log[256] = "\0";
+        glGetShaderInfoLog(shader, sizeof(log) / sizeof(char), &written, log);
+        if (!check_errors(failed_compile_status)) {
+            return false;
+        }
+
+        if (static_cast<unsigned>(written) < sizeof(log) / sizeof(char) - 1) {
+            std::cout << log;
+        } else {
+            std::vector<char> vlog;
+            vlog.reserve(2 * sizeof(log) / sizeof(char));
+            glGetShaderInfoLog(shader, static_cast<GLsizei>(vlog.capacity()), &written, vlog.data());
+            if (!check_errors(failed_compile_status)) {
+                return false;
+            }
+
+            while (vlog.capacity() == static_cast<unsigned>(written + 1)) {
+                vlog.reserve(2 * vlog.capacity());
+                glGetShaderInfoLog(shader, static_cast<GLsizei>(vlog.capacity()), &written, vlog.data());
+                if (!check_errors(failed_compile_status)) {
+                    return false;
+                }
+            }
+            std::cout << vlog.data();
+
+        }
+
         return false;
     }
     return true;

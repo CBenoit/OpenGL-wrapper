@@ -5,6 +5,7 @@
 #include <assimp/postprocess.h>
 
 #include <ow/model.hpp>
+#include <ow/utils.hpp>
 
 ow::model::model(const std::string& path)
         : m_meshes{}
@@ -24,7 +25,7 @@ void ow::model::load_model(const std::string& path) {
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+        logger << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         return;
     }
     m_directory = path.substr(0, path.find_last_of('/'));

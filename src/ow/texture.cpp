@@ -5,6 +5,7 @@
 #include <stb_image.h>
 
 #include <ow/texture.hpp>
+#include <ow/utils.hpp>
 
 ow::texture::texture(const std::string& filename, std::string_view type_) : id{}, type(type_) {
     // load and generate the texture
@@ -41,7 +42,7 @@ ow::texture::texture(const std::string& filename, std::string_view type_) : id{}
 
         glBindTexture(GL_TEXTURE_2D, 0);
     } else {
-        std::cout << "Failed to load texture " << filename << std::endl;
+        logger << "Failed to load texture " << filename << '\n';
     }
 
     stbi_image_free(data);

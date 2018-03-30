@@ -2,6 +2,7 @@
 #include <ow/opengl_codes.hpp>
 #include <iostream>
 #include <fstream>
+#include <ow/utils.hpp>
 
 namespace ow {
 
@@ -45,10 +46,12 @@ namespace ow {
         return GL_DOUBLE;
     }
 
-    bool check_errors(std::string_view error_message) {
+    bool check_errors_impl(std::string_view error_message, std::string_view file, std::string_view function,
+                      unsigned long line) {
+
         auto ec = glGetError();
         if (ec != GL_NO_ERROR) {
-            std::cout << error_message << "ec: " << ec_to_string(ec) << '\n';
+	        logger_impl(file, function, line) << error_message.data() << "ec: " << ec_to_string(ec) << '\n';
             return false;
         }
         return true;

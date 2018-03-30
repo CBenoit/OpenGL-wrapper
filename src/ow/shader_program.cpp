@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <ow/shader_program.hpp>
+#include <ow/utils.hpp>
 
 ow::shader_program::shader_program(shader_program&& other) noexcept
         : checkable(other.p_state)
@@ -25,14 +26,15 @@ bool ow::shader_program::put(const std::vector<std::pair<GLenum, std::string_vie
         }
 
         glAttachShader(get_id(), shader_id);
-        p_state = check_errors("Error while attaching " + std::to_string(shader_id) + " to shader " + std::to_string(get_id()) + "\n");
+        p_state = check_errors(
+                "Error while attaching " + std::to_string(shader_id) + " to shader " + std::to_string(get_id()) + "\n");
         if (!p_state) {
             return false;
         }
 
         glDeleteShader(shader_id);
         p_state = check_errors("Error while flagging " + std::to_string(shader_id)
-                                 + " for deletion (in shader " + std::to_string(get_id()) + "\n");
+                               + " for deletion (in shader " + std::to_string(get_id()) + "\n");
         if (!p_state) {
             return false;
         }
@@ -49,7 +51,7 @@ bool ow::shader_program::load_shader(GLuint shader, std::string_view file_name) 
 
     std::ifstream file("resources/shaders/"s + file_name.data(), std::ios::in);
     if (!file) {
-        std::cout << "[" << file_name << "] : failed to open file." << std::endl;
+        logger << "[" << file_name << "] : failed to open file." << std::endl;
         return false;
     }
 
@@ -77,7 +79,8 @@ bool ow::shader_program::checked_compile(GLuint shader, std::string_view shader_
     check_errors(failed_compile_status);
 
     if (!success || glGetError() != GL_NO_ERROR) {
-        std::cout << "[" << shader_file << "] : Failed to compile :\n";
+	    auto&& ostream = logger << "[" << std::string(shader_file) << "] : Failed to compile :\n";
+
         GLsizei written  = 0;
         char log[256] = "\0";
         glGetShaderInfoLog(shader, sizeof(log) / sizeof(char), &written, log);
@@ -86,7 +89,7 @@ bool ow::shader_program::checked_compile(GLuint shader, std::string_view shader_
         }
 
         if (static_cast<unsigned>(written) < sizeof(log) / sizeof(char) - 1) {
-            std::cout << log;
+	        ostream << log;
         } else {
             std::vector<char> vlog;
             vlog.reserve(2 * sizeof(log) / sizeof(char));
@@ -102,7 +105,7 @@ bool ow::shader_program::checked_compile(GLuint shader, std::string_view shader_
                     return false;
                 }
             }
-            std::cout << vlog.data();
+	        ostream << vlog.data();
 
         }
 

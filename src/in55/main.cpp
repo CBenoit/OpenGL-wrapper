@@ -17,6 +17,7 @@
 #include <ow/mesh.hpp>
 #include <ow/texture.hpp>
 #include <ow/model.hpp>
+#include <ow/utils.hpp>
 
 
 void process_input(GLFWwindow* window, float dt);
@@ -54,7 +55,7 @@ int main() {
     // glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "IN55", nullptr, nullptr);
     if (window == nullptr) {
-        std::cout << "Failed to create GLFW winow" << std::endl;
+        ow::logger << "Failed to create GLFW winow" << std::endl;
         glfwTerminate();
         return EXIT_FAILURE;
     }
@@ -66,7 +67,7 @@ int main() {
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        ow::logger << "Failed to initialize GLAD" << std::endl;
         return EXIT_FAILURE;
     }
 

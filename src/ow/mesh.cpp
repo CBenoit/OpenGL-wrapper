@@ -40,19 +40,26 @@ ow::mesh::mesh(mesh &&other) noexcept(noexcept(std::vector<vertex>{std::vector<v
 
 ow::mesh::~mesh() {
 	glDeleteVertexArrays(1, &m_VAO);
+	check_errors("error while deleting VAO.");
 	glDeleteBuffers(1, &m_EBO);
+	check_errors("error while deleting EBO.");
 }
 
 void ow::mesh::setup_mesh() {
 	glGenVertexArrays(1, &m_VAO);
+	check_errors("error while generating VAO.");
 	glGenBuffers(1, &m_EBO);
+	check_errors("error while generating EBO.");
 
 	glBindVertexArray(m_VAO);
+	check_errors("Failed to bind VAO.");
 
 	m_VBO.set_data(m_vertices);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+	check_errors("Failed to bind EBO.");
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), m_indices.data(), GL_STATIC_DRAW);
+	check_errors("Failed to set EBO data.");
 
 	// vertex positions
 	m_VBO.attribs().layout_size = 3u;
@@ -71,6 +78,7 @@ void ow::mesh::setup_mesh() {
 	m_VBO.flush_layout_attribs();
 
 	glBindVertexArray(0); // unbind the VAO
+	check_errors("Failed to unbind VAO.");
 }
 
 void ow::mesh::draw(const shader_program &prog) const {
@@ -81,6 +89,7 @@ void ow::mesh::draw(const shader_program &prog) const {
 	unsigned int nbr_emission = 0;
 	for (unsigned int i = 0; i < m_textures.size(); ++i) {
 		glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
+		check_errors("error while activating texture " + std::to_string(GL_TEXTURE0 + i));
 
 		// retrieve texture number
 		std::string number;
@@ -98,15 +107,20 @@ void ow::mesh::draw(const shader_program &prog) const {
 
 		prog.set((type + "_maps[" + number + "]").c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, m_textures[i]->id);
+		check_errors("error while binding texture " + std::to_string(m_textures[i]->id));
 	}
 	prog.set("nbr_diffuse_maps", nbr_diffuse);
 	prog.set("nbr_specular_maps", nbr_specular);
 	prog.set("nbr_emission_maps", nbr_emission);
 	glActiveTexture(GL_TEXTURE0);
+	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0));
 
 	// draw mesh
 	glBindVertexArray(m_VAO);
+	check_errors("failed to bind VAO.");
 	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
+	check_errors("failed to draw VAO elements.");
 	glBindVertexArray(0);
+	check_errors("failed to unbind VAO.");
 }
 

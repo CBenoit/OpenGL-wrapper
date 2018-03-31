@@ -74,6 +74,7 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    ow::check_errors("Failed to set GL_DEPTH_TEST.");
 
     // game loop
     // -----------
@@ -91,7 +92,9 @@ int main() {
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	    ow::check_errors("Failed to set clear color.");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    ow::check_errors("Failed to clear scr.");
 
         // ...
 

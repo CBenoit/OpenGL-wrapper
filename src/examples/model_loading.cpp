@@ -191,7 +191,9 @@ int main() {
         // render
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	    ow::check_errors("Failed to set clear color.");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	    ow::check_errors("Failed to clear scr.");
 
         // activate shader program
         prog.use();

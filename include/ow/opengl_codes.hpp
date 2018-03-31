@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <string>
 
+#include "ow/vertex.hpp"
+
 namespace ow {
 
 template<typename T>
@@ -18,4 +20,35 @@ std::string ec_to_string(GLenum error_code);
 
 bool check_errors_impl(std::string_view error_message, std::string_view, std::string_view, unsigned long);
 
+}
+
+
+namespace ow {
+
+	template<>
+	GLenum get_gl_type<vertex>();
+
+	template<>
+	GLenum get_gl_type<GLbyte>();
+
+	template<>
+	GLenum get_gl_type<GLubyte>();
+
+	template<>
+	GLenum get_gl_type<GLshort>();
+
+	template<>
+	GLenum get_gl_type<GLushort>();
+
+	template<>
+	GLenum get_gl_type<GLint>();
+
+	template<>
+	GLenum get_gl_type<GLuint>();
+
+	template<>
+	GLenum get_gl_type<GLfloat>();
+
+	template<>
+	GLenum get_gl_type<GLdouble>();
 }

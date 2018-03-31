@@ -3,8 +3,14 @@
 #include <iostream>
 #include <fstream>
 #include <ow/utils.hpp>
+#include <ow/vertex.hpp>
 
 namespace ow {
+
+	template<>
+	GLenum get_gl_type<vertex>() {
+		return GL_FLOAT;
+	}
 
     template<>
     GLenum get_gl_type<GLbyte>() {

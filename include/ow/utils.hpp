@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <iostream>
 
 namespace ow {
 #define logger logger_impl(__FILE__, __FUNCTION__, __LINE__)

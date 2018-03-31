@@ -8,6 +8,7 @@
 #include <ow/shader_program.hpp>
 #include <ow/texture.hpp>
 #include <ow/vertex.hpp>
+#include <ow/VBO.hpp>
 
 namespace ow {
 
@@ -38,7 +39,8 @@ private:
 
 private:
     // render data
-    unsigned int m_VAO, m_VBO, m_EBO;
+    unsigned int m_VAO, m_EBO;
+    VBO<1> m_VBO;
 
     // mesh data
     std::vector<vertex> m_vertices;

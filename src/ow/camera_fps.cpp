@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <ow/camera_fps.hpp>
+#include <ow/utils.hpp>
 
 ow::camera_fps::camera_fps(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
     : m_pos(position)
@@ -43,6 +44,8 @@ void ow::camera_fps::process_movement(camera_movement direction, float dt) {
     case DOWN:
         m_pos -= m_up * velocity;
         break;
+    default:
+    	logger << "Warning: unknown direction catched.\n";
     }
 }
 

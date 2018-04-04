@@ -30,8 +30,8 @@ const unsigned int SCR_HEIGHT = 600;
 // initialize camera system
 // ------------------------
 ow::camera_fps camera{glm::vec3(0, 0, 3)};
-float last_x = SCR_WIDTH / 2;
-float last_y = SCR_HEIGHT / 2;
+float last_x = static_cast<float>(SCR_WIDTH) / 2.f;
+float last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
 bool first_mouse = true;
 
 int main() {
@@ -73,13 +73,13 @@ int main() {
 
     // load the texture
     // ----------------
-    auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::TEXTURE_EMISSION);
+    auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::emission);
 
     // load shaders
     // ------------
     ow::shader_program prog{
-            {{GL_VERTEX_SHADER, "vertex_phong.glsl"}
-            ,{GL_FRAGMENT_SHADER, "fragment_phong.glsl"}
+            {{GL_VERTEX_SHADER, "phong_vertex.glsl"}
+            ,{GL_FRAGMENT_SHADER, "phong_frag.glsl"}
     }};
 
     // set up mesh
@@ -177,7 +177,7 @@ int main() {
 
     // game loop
     // -----------
-    float delta_time = 0.0f;	// time between current frame and last frame
+    float delta_time;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
         auto current_frame = static_cast<float>(glfwGetTime());

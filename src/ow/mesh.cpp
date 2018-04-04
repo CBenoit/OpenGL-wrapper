@@ -8,35 +8,49 @@
 #include <ow/vertex.hpp>
 #include <ow/mesh.hpp>
 
-ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
-               std::vector<std::shared_ptr<texture>> textures)
-		: m_VAO{}
-		, m_EBO{}
-		, m_VBO{}
+ow::mesh::mesh(std::vector<ow::vertex> vertices, std::vector<unsigned int> indices,
+               std::vector<std::shared_ptr<ow::texture>> diffuse_maps,
+               std::vector<std::shared_ptr<ow::texture>> specular_maps,
+               std::vector<std::shared_ptr<ow::texture>> emission_maps)
+		: m_VAO{}, m_VBO{}, m_EBO{}
 		, m_vertices(std::move(vertices))
 		, m_indices(std::move(indices))
-		, m_textures(std::move(textures)) {
-	setup_mesh();
+		, m_diffuse_maps(std::move(diffuse_maps))
+		, m_specular_maps(std::move(specular_maps))
+		, m_emission_maps(std::move(emission_maps)) {}
+
+ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures)
+		: m_VAO{}, m_VBO{}, m_EBO{}
+		, m_vertices(std::move(vertices))
+		, m_indices(std::move(indices))
+		, m_diffuse_maps()
+		, m_specular_maps()
+		, m_emission_maps() {
+	for (auto& tex : textures) {
+		add_texture(std::move(tex));
+	}
+	_setup_mesh();
 }
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices)
-		: m_VAO{}
-		, m_EBO{}
-		, m_VBO{}
-		, m_vertices(std::move(vertices))
-		, m_indices(std::move(indices))
-		, m_textures() {
-	setup_mesh();
+		: m_VAO{}, m_VBO{}, m_EBO{}
+	    , m_vertices(std::move(vertices))
+	    , m_indices(std::move(indices))
+	    , m_diffuse_maps()
+		, m_specular_maps()
+		, m_emission_maps() {
+	_setup_mesh();
 }
 
-ow::mesh::mesh(mesh &&other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}))
-		: m_VAO{std::exchange(other.m_VAO, 0)}
-		, m_EBO{std::exchange(other.m_EBO, 0)}
-		, m_VBO{std::move(other.m_VBO)}
-		, m_vertices{std::move(other.m_vertices)}
-		, m_indices{std::move(other.m_indices)}
-		, m_textures{std::move(other.m_textures)}
-{}
+ow::mesh::mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}))
+	    : m_VAO{std::exchange(other.m_VAO, 0)}
+	    , m_VBO{std::exchange(other.m_VBO, 0)}
+	    , m_EBO{std::exchange(other.m_EBO, 0)}
+	    , m_vertices{std::move(other.m_vertices)}
+	    , m_indices{std::move(other.m_indices)}
+		, m_diffuse_maps(std::move(other.m_diffuse_maps))
+		, m_specular_maps(std::move(other.m_specular_maps))
+		, m_emission_maps(std::move(other.m_emission_maps)) {}
 
 ow::mesh::~mesh() {
 	glDeleteVertexArrays(1, &m_VAO);
@@ -45,7 +59,45 @@ ow::mesh::~mesh() {
 	check_errors("error while deleting EBO.");
 }
 
-void ow::mesh::setup_mesh() {
+void ow::mesh::draw(const shader_program& prog) const {
+    prog.use();
+
+	glBindVertexArray(m_VAO);
+	check_errors("failed to bind VAO.");
+    size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
+    for (unsigned int i = 0; i < number_of_passes; ++i) {
+    	unsigned int next_unit_to_activate = 0;
+		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps);
+	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps);
+	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps);
+
+	    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
+	    check_errors("failed to draw VAO elements.");
+    }
+	// reset
+    glActiveTexture(GL_TEXTURE0);
+	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0));
+	glBindVertexArray(0);
+	check_errors("failed to unbind VAO.");
+}
+
+void ow::mesh::add_texture(std::shared_ptr<ow::texture> texture) {
+	switch (texture->type) {
+	case texture_type::diffuse:
+		m_diffuse_maps.push_back(texture);
+		break;
+	case texture_type::specular:
+		m_specular_maps.push_back(texture);
+		break;
+	case texture_type::emission:
+		m_emission_maps.push_back(texture);
+		break;
+	default:
+		break; // nothing to do.
+	}
+}
+
+void ow::mesh::_setup_mesh() {
 	glGenVertexArrays(1, &m_VAO);
 	check_errors("error while generating VAO.");
 	glGenBuffers(1, &m_EBO);
@@ -81,46 +133,17 @@ void ow::mesh::setup_mesh() {
 	check_errors("Failed to unbind VAO.");
 }
 
-void ow::mesh::draw(const shader_program &prog) const {
-	prog.use();
-
-	unsigned int nbr_diffuse = 0;
-	unsigned int nbr_specular = 0;
-	unsigned int nbr_emission = 0;
-	for (unsigned int i = 0; i < m_textures.size(); ++i) {
-		glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-		check_errors("error while activating texture " + std::to_string(GL_TEXTURE0 + i));
-
-		// retrieve texture number
-		std::string number;
-		std::string type = m_textures[i]->type;
-		if (type == ow::TEXTURE_DIFFUSE) {
-			number = std::to_string(nbr_diffuse++);
-
-		} else if (type == ow::TEXTURE_SPECULAR) {
-			number = std::to_string(nbr_specular++);
-
-		} else if (type == ow::TEXTURE_EMISSION) {
-			number = std::to_string(nbr_emission++);
-
-		}
-
-		prog.set((type + "_maps[" + number + "]").c_str(), i);
-		glBindTexture(GL_TEXTURE_2D, m_textures[i]->id);
-		check_errors("error while binding texture " + std::to_string(m_textures[i]->id));
+void ow::mesh::_activate_next_texture_unit(const shader_program& prog, unsigned int* next_unit_to_activate,
+                                           unsigned int current_pass,
+                                           std::vector<std::shared_ptr<ow::texture>> textures) const {
+	if (current_pass < textures.size()) {
+		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", true);
+		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate);
+		glActiveTexture(GL_TEXTURE0 + (*next_unit_to_activate)++);
+		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + current_pass));
+		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
+		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id));
+	} else {
+		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", false);
 	}
-	prog.set("nbr_diffuse_maps", nbr_diffuse);
-	prog.set("nbr_specular_maps", nbr_specular);
-	prog.set("nbr_emission_maps", nbr_emission);
-	glActiveTexture(GL_TEXTURE0);
-	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0));
-
-	// draw mesh
-	glBindVertexArray(m_VAO);
-	check_errors("failed to bind VAO.");
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
-	check_errors("failed to draw VAO elements.");
-	glBindVertexArray(0);
-	check_errors("failed to unbind VAO.");
 }
-

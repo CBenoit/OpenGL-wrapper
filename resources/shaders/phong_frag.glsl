@@ -7,16 +7,12 @@ in vec2 vertex_tex_coord;
 
 // === material stuff ===
 
-#define MAX_DIFFUSE_MAPS 3
-#define MAX_SPECULAR_MAPS 3
-#define MAX_EMISSION_MAPS 2
-
-uniform int nbr_diffuse_maps;
-uniform int nbr_specular_maps;
-uniform int nbr_emission_maps;
-uniform sampler2D diffuse_maps[MAX_DIFFUSE_MAPS];
-uniform sampler2D specular_maps[MAX_SPECULAR_MAPS];
-uniform sampler2D emission_maps[MAX_EMISSION_MAPS];
+uniform bool has_diffuse_map;
+uniform bool has_specular_map;
+uniform bool has_emission_map;
+uniform sampler2D diffuse_map;
+uniform sampler2D specular_map;
+uniform sampler2D emission_map;
 uniform float materials_shininess;
 
 // === light stuff ===
@@ -77,31 +73,33 @@ out vec4 frag_color;
 // =============
 
 void main() {
-    // view position is always (0, 0, 0) since we're
-    // doing lighting in view space.
-    vec3 view_dir = normalize(-vertex_pos);
-    vec3 norm = normalize(vertex_normal);
-
     vec3 result = vec3(0.0);
 
-    // phase 1: directional light
-    for (int i = 0, sz = min(nbr_dir_lights, MAX_DIR_LIGHTS); i < sz; ++i) {
-        result += calcDirLight(dir_lights[i], norm, view_dir);
-    }
+    if (has_diffuse_map || has_specular_map) {
+        // view position is always (0, 0, 0) since we're
+        // doing lighting in view space.
+        vec3 view_dir = normalize(-vertex_pos);
+        vec3 norm = normalize(vertex_normal);
 
-    // phase 2: point lights
-    for (int i = min(nbr_point_lights, MAX_POINT_LIGHTS); i-- > 0;) {
-        result += calcPointLight(point_lights[i], norm, view_dir);
-    }
+        // phase 1: directional light
+        for (int i = 0, sz = min(nbr_dir_lights, MAX_DIR_LIGHTS); i < sz; ++i) {
+            result += calcDirLight(dir_lights[i], norm, view_dir);
+        }
 
-    // phase 3: spotlight
-    for (int i = min(nbr_spotlights, MAX_SPOTLIGHTS); i-- > 0;) {
-        result += calcSpotlight(spotlights[i], norm, view_dir);
+        // phase 2: point lights
+        for (int i = min(nbr_point_lights, MAX_POINT_LIGHTS); i-- > 0;) {
+            result += calcPointLight(point_lights[i], norm, view_dir);
+        }
+
+        // phase 3: spotlight
+        for (int i = min(nbr_spotlights, MAX_SPOTLIGHTS); i-- > 0;) {
+            result += calcSpotlight(spotlights[i], norm, view_dir);
+        }
     }
 
     // phase 4: emission light
-    for (int i = min(nbr_emission_maps, MAX_EMISSION_MAPS); i-- > 0;) {
-        result += vec3(texture(emission_maps[i], vertex_tex_coord));
+    if (has_emission_map) {
+        result += vec3(texture(emission_map, vertex_tex_coord));
     }
 
     frag_color = vec4(result, 1.0);
@@ -119,12 +117,12 @@ vec3 calcDirLight(DirectionalLight light, vec3 normal, vec3 view_dir) {
 
     // combine
     vec3 result = vec3(0.0);
-    for (int i = min(nbr_diffuse_maps, MAX_DIFFUSE_MAPS); i-- > 0;) {
-        result += light.ambient * texture(diffuse_maps[i], vertex_tex_coord).rgb; // ambient
-        result += light.diffuse * diff * texture(diffuse_maps[i], vertex_tex_coord).rgb; // diffuse
+    if (has_diffuse_map) {
+        result += light.ambient * texture(diffuse_map, vertex_tex_coord).rgb; // ambient
+        result += light.diffuse * diff * texture(diffuse_map, vertex_tex_coord).rgb; // diffuse
     }
-    for (int i = min(nbr_specular_maps, MAX_SPECULAR_MAPS); i-- > 0;) {
-        result += light.specular * spec * texture(specular_maps[i], vertex_tex_coord).rgb; // specular
+    if (has_specular_map) {
+        result += light.specular * spec * texture(specular_map, vertex_tex_coord).rgb; // specular
     }
 
     return result;
@@ -146,11 +144,11 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 view_dir) {
 
     // combine
     vec3 result = vec3(0.0);
-    for (int i = min(nbr_diffuse_maps, MAX_DIFFUSE_MAPS); i-- > 0;) {
-        result += attenuation * light.diffuse * diff * texture(diffuse_maps[i], vertex_tex_coord).rgb; // diffuse
+    if (has_diffuse_map) {
+        result += attenuation * light.diffuse * diff * texture(diffuse_map, vertex_tex_coord).rgb; // diffuse
     }
-    for (int i = min(nbr_specular_maps, MAX_SPECULAR_MAPS); i-- > 0;) {
-        result += attenuation * light.specular * spec * texture(specular_maps[i], vertex_tex_coord).rgb; // specular
+    if (has_specular_map) {
+        result += attenuation * light.specular * spec * texture(specular_map, vertex_tex_coord).rgb; // specular
     }
 
     return result;
@@ -176,13 +174,12 @@ vec3 calcSpotlight(Spotlight light, vec3 normal, vec3 view_dir) {
 
     // combine
     vec3 result = vec3(0.0);
-    for (int i = min(nbr_diffuse_maps, MAX_DIFFUSE_MAPS); i-- > 0;) {
-        result += attenuation * intensity * light.diffuse * diff * texture(diffuse_maps[i], vertex_tex_coord).rgb; // diffuse
+    if (has_diffuse_map) {
+        result += attenuation * intensity * light.diffuse * diff * texture(diffuse_map, vertex_tex_coord).rgb; // diffuse
     }
-    for (int i = min(nbr_specular_maps, MAX_SPECULAR_MAPS); i-- > 0;) {
-        result += attenuation * intensity * light.specular * spec * texture(specular_maps[i], vertex_tex_coord).rgb; // specular
+    if (has_specular_map) {
+        result += attenuation * intensity * light.specular * spec * texture(specular_map, vertex_tex_coord).rgb; // specular
     }
 
     return result;
 }
-

@@ -46,6 +46,7 @@ void ow::camera_fps::process_movement(camera_movement direction, float dt) {
         break;
     default:
     	logger << "Warning: unknown direction catched.\n";
+        break;
     }
 }
 

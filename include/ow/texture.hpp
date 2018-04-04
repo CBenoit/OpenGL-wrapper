@@ -7,20 +7,24 @@
 
 namespace ow {
 
-constexpr std::string_view TEXTURE_DIFFUSE = "diffuse";
-constexpr std::string_view TEXTURE_SPECULAR = "specular";
-constexpr std::string_view TEXTURE_EMISSION = "emission";
+enum class texture_type {
+	diffuse,
+	specular,
+	emission
+};
 
 struct texture {
-    explicit texture(unsigned int id_, std::string type_ = "") : id(id_), type(std::move(type_)) {}
-    explicit texture(const std::string& filename, std::string_view type_ = "");
+    explicit texture(unsigned int id_, texture_type type_ = texture_type::emission) : id(id_), type(type_) {}
+    explicit texture(const std::string& filename, texture_type type_ = texture_type::emission);
     texture(const texture& other) = delete;
     texture(texture&& other) noexcept;
     ~texture();
     texture& operator=(const texture& other) = delete;
 
+    std::string type_to_string() const;
+
     GLuint id;
-    std::string type;
+    texture_type type;
 };
 
 }

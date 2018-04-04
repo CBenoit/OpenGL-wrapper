@@ -22,7 +22,7 @@ private:
     void load_model(const std::string& path);
     void process_node(aiNode* node, const aiScene* scene);
     void process_mesh(aiMesh* mesh, const aiScene* scene);
-    std::vector<std::shared_ptr<texture>> load_material_textures(aiMaterial* mat, aiTextureType type, const std::string& type_name);
+    std::vector<std::shared_ptr<texture>> load_material_textures(aiMaterial* mat, aiTextureType type, const texture_type& type_name);
 };
 
 }

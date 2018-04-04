@@ -29,8 +29,8 @@ const unsigned int SCR_HEIGHT = 600;
 // initialize camera system
 // ------------------------
 ow::camera_fps camera{glm::vec3(0, 0, 3)};
-float last_x = SCR_WIDTH / 2;
-float last_y = SCR_HEIGHT / 2;
+float last_x = static_cast<float>(SCR_WIDTH) / 2.f;
+float last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
 bool first_mouse = true;
 
 int main() {
@@ -72,15 +72,15 @@ int main() {
 
     // load the texture
     // ----------------
-    auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::TEXTURE_EMISSION);
-    auto diffuse_map    = std::make_shared<ow::texture>("resources/textures/container2.png", ow::TEXTURE_DIFFUSE);
-    auto specular_map   = std::make_shared<ow::texture>("resources/textures/container2_specular.png", ow::TEXTURE_SPECULAR);
+    auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::emission);
+    auto diffuse_map    = std::make_shared<ow::texture>("resources/textures/container2.png", ow::texture_type::diffuse);
+    auto specular_map   = std::make_shared<ow::texture>("resources/textures/container2_specular.png", ow::texture_type::specular);
 
     // load shaders
     // ------------
     ow::shader_program prog{
-            {{GL_VERTEX_SHADER, "vertex_phong.glsl"}
-            ,{GL_FRAGMENT_SHADER, "fragment_phong.glsl"}
+            {{GL_VERTEX_SHADER, "phong_vertex.glsl"}
+            ,{GL_FRAGMENT_SHADER, "phong_frag.glsl"}
     }};
 
     // set up mesh
@@ -200,7 +200,7 @@ int main() {
 
     // game loop
     // -----------
-    float delta_time = 0.0f;	// time between current frame and last frame
+    float delta_time;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
         auto current_frame = static_cast<float>(glfwGetTime());
@@ -232,7 +232,7 @@ int main() {
         lights.update_position_and_direction(prog, view);
 
         // draw lamps
-        for (auto pt_light : point_lights) {
+        for (const auto& pt_light : point_lights) {
             glm::mat4 model{1.0f};
             model = glm::translate(model, pt_light->get_pos());
             model = glm::scale(model, glm::vec3(.2f));

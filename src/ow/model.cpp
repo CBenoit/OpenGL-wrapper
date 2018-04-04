@@ -47,7 +47,6 @@ void ow::model::process_node(aiNode* node, const aiScene *scene) {
 void ow::model::process_mesh(aiMesh* mesh, const aiScene *scene) {
     std::vector<vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<std::shared_ptr<texture>> textures;
 
     // vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
@@ -81,23 +80,18 @@ void ow::model::process_mesh(aiMesh* mesh, const aiScene *scene) {
     }
 
     // materials
-    //if (mesh->mMaterialIndex >= 0) { [if(true)]
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    //if (mesh->mMaterialIndex >= 0) { // if (true)
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-        std::vector<std::shared_ptr<texture>> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, TEXTURE_DIFFUSE.data());
-        textures.insert(textures.end(), diffuse_maps.begin(), diffuse_maps.end());
-
-        std::vector<std::shared_ptr<texture>> specular_maps = load_material_textures(material, aiTextureType_SPECULAR, TEXTURE_SPECULAR.data());
-        textures.insert(textures.end(), specular_maps.begin(), specular_maps.end());
-
-        std::vector<std::shared_ptr<texture>> emission_maps = load_material_textures(material, aiTextureType_EMISSIVE, TEXTURE_EMISSION.data());
-        textures.insert(textures.end(), emission_maps.begin(), emission_maps.end());
+    std::vector<std::shared_ptr<texture>> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, texture_type::diffuse);
+    std::vector<std::shared_ptr<texture>> specular_maps = load_material_textures(material, aiTextureType_SPECULAR, texture_type::specular);
+    std::vector<std::shared_ptr<texture>> emission_maps = load_material_textures(material, aiTextureType_EMISSIVE, texture_type::emission);
     //}
 
-    m_meshes.emplace_back(std::move(vertices), std::move(indices), std::move(textures));
+    m_meshes.emplace_back(std::move(vertices), std::move(indices), std::move(diffuse_maps), std::move(specular_maps), std::move(emission_maps));
 }
 
-std::vector<std::shared_ptr<ow::texture>> ow::model::load_material_textures(aiMaterial* mat, aiTextureType type, const std::string& type_name) {
+std::vector<std::shared_ptr<ow::texture>> ow::model::load_material_textures(aiMaterial* mat, aiTextureType type, const texture_type& type_name) {
     std::vector<std::shared_ptr<texture>> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString str;
@@ -107,4 +101,3 @@ std::vector<std::shared_ptr<ow::texture>> ow::model::load_material_textures(aiMa
     }
     return textures;
 }
-

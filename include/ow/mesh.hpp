@@ -14,8 +14,14 @@ namespace ow {
 
 class mesh {
 public:
-    mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures);
-    mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices);
+	mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
+	     std::vector<std::shared_ptr<texture>> diffuse_maps,
+	     std::vector<std::shared_ptr<texture>> specular_maps,
+	     std::vector<std::shared_ptr<texture>> emission_maps
+	);
+    mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices,
+         std::vector<std::shared_ptr<texture>> textures);
+	mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices);
     mesh(const mesh& other) = delete;
     mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::move(std::vector<vertex>{})}));
     ~mesh();
@@ -29,13 +35,22 @@ public:
     std::vector<unsigned int>& get_indices() { return m_indices; }
     const std::vector<unsigned int>& get_indices() const { return m_indices; }
 
-    std::vector<std::shared_ptr<texture>>& get_textures() { return m_textures; }
-    const std::vector<std::shared_ptr<texture>>& get_textures() const { return m_textures; }
+    std::vector<std::shared_ptr<texture>>& get_diffuse_maps() { return m_diffuse_maps; }
+    const std::vector<std::shared_ptr<texture>>& get_diffuse_maps() const { return m_diffuse_maps; }
 
-    void add_texture(std::shared_ptr<texture> texture) { m_textures.push_back(std::move(texture)); }
+    std::vector<std::shared_ptr<texture>>& get_specular_maps() { return m_specular_maps; }
+    const std::vector<std::shared_ptr<texture>>& get_specular_maps() const { return m_specular_maps; }
+
+    std::vector<std::shared_ptr<texture>>& get_emission_maps() { return m_emission_maps; }
+    const std::vector<std::shared_ptr<texture>>& get_emission_maps() const { return m_emission_maps; }
+
+    void add_texture(std::shared_ptr<texture> texture);
 
 private:
-    void setup_mesh();
+    void _setup_mesh();
+
+	void _activate_next_texture_unit(const shader_program& prog, unsigned int* next_unit_to_activate,
+	                                 unsigned int current_pass, std::vector<std::shared_ptr<texture>> textures) const;
 
 private:
     // render data
@@ -45,8 +60,9 @@ private:
     // mesh data
     std::vector<vertex> m_vertices;
     std::vector<unsigned int> m_indices;
-    std::vector<std::shared_ptr<texture>> m_textures;
+    std::vector<std::shared_ptr<texture>> m_diffuse_maps;
+    std::vector<std::shared_ptr<texture>> m_specular_maps;
+    std::vector<std::shared_ptr<texture>> m_emission_maps;
 };
 
 }
-

@@ -75,8 +75,8 @@ int main() {
     // load shaders
     // ------------
     ow::shader_program shader_program{
-            {{GL_VERTEX_SHADER,   "vertex_basic.glsl"}
-            ,{GL_FRAGMENT_SHADER, "fragment_basic.glsl"}
+            {{GL_VERTEX_SHADER,   "basic_vertex.glsl"}
+            ,{GL_FRAGMENT_SHADER, "basic_frag.glsl"}
     }};
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -196,7 +196,7 @@ int main() {
 
     // game loop
     // -----------
-    float delta_time = 0.0f;	// time between current frame and last frame
+    float delta_time;	// time between current frame and last frame
     float last_frame = 0.0f; // time of last frame
     while (!glfwWindowShouldClose(window)) {
         auto current_frame = static_cast<float>(glfwGetTime());

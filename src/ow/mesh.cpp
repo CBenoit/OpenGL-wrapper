@@ -67,9 +67,9 @@ void ow::mesh::draw(const shader_program& prog) const {
     size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
     for (unsigned int i = 0; i < number_of_passes; ++i) {
     	unsigned int next_unit_to_activate = 0;
-		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps);
-	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps);
-	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps);
+	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);
+	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps, texture_type::specular);
+	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps, texture_type::emission);
 
 	    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
 	    check_errors("failed to draw VAO elements.");
@@ -135,7 +135,8 @@ void ow::mesh::_setup_mesh() {
 
 void ow::mesh::_activate_next_texture_unit(const shader_program& prog, unsigned int* next_unit_to_activate,
                                            unsigned int current_pass,
-                                           std::vector<std::shared_ptr<ow::texture>> textures) const {
+                                           std::vector<std::shared_ptr<ow::texture>> textures,
+                                           ow::texture_type tex_type) const {
 	if (current_pass < textures.size()) {
 		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", true);
 		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate);
@@ -144,6 +145,6 @@ void ow::mesh::_activate_next_texture_unit(const shader_program& prog, unsigned 
 		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
 		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id));
 	} else {
-		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", false);
+		prog.set("has_" + texture_type_to_string(tex_type) + "_map", false);
 	}
 }

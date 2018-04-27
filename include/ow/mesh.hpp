@@ -50,7 +50,8 @@ private:
     void _setup_mesh();
 
 	void _activate_next_texture_unit(const shader_program& prog, unsigned int* next_unit_to_activate,
-	                                 unsigned int current_pass, std::vector<std::shared_ptr<texture>> textures) const;
+	                                 unsigned int current_pass, std::vector<std::shared_ptr<texture>> textures,
+	                                 ow::texture_type tex_type) const;
 
 private:
     // render data

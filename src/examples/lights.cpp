@@ -73,8 +73,8 @@ int main() {
     // load the texture
     // ----------------
     auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::emission);
-    auto diffuse_map    = std::make_shared<ow::texture>("resources/textures/container2.png", ow::texture_type::diffuse);
-    auto specular_map   = std::make_shared<ow::texture>("resources/textures/container2_specular.png", ow::texture_type::specular);
+    auto diffuse_map   = std::make_shared<ow::texture>("resources/textures/container2.png", ow::texture_type::diffuse);
+    auto specular_map  = std::make_shared<ow::texture>("resources/textures/container2_specular.png", ow::texture_type::specular);
 
     // load shaders
     // ------------

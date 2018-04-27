@@ -105,6 +105,9 @@ public:
         } else {
             static_assert(is_same_v<T,T*>, "Unknown type");
         }
+
+        // TODO: add check errors
+        check_errors("TODO ERROR!");
     }
 
 

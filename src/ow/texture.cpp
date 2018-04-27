@@ -8,6 +8,19 @@
 #include <ow/utils.hpp>
 #include <ow/opengl_codes.hpp>
 
+std::string ow::texture_type_to_string(texture_type type) {
+    switch (type) {
+    case texture_type::diffuse:
+        return "diffuse";
+    case texture_type::specular:
+        return "specular";
+    case texture_type::emission:
+        return "emission";
+    default:
+        return "";
+    }
+}
+
 ow::texture::texture(const std::string& filename, texture_type type_) : id{}, type(type_) {
     // load and generate the texture
     int width, height, nbr_channels;
@@ -67,17 +80,4 @@ ow::texture::texture(texture&& other) noexcept
 
 ow::texture::~texture() {
     glDeleteTextures(1, &id);
-}
-
-std::string ow::texture::type_to_string() const {
-    switch (type) {
-    case texture_type::diffuse:
-        return "diffuse";
-    case texture_type::specular:
-        return "specular";
-    case texture_type::emission:
-        return "emission";
-    default:
-        return "";
-    }
 }

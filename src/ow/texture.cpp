@@ -29,7 +29,7 @@ ow::texture::texture(const std::string& filename, texture_type type_) : id{}, ty
             abort();
         }
 
-        auto gl_chk = [] () {check_errors("Error configuring texture " + std::to_string(id));};
+        auto gl_chk = [this] () {check_errors("Error configuring texture " + std::to_string(id));};
 
         glGenTextures(1, &id);
         check_errors("Error while generating texture.");

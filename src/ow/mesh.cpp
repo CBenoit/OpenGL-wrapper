@@ -12,7 +12,7 @@ ow::mesh::mesh(std::vector<ow::vertex> vertices, std::vector<unsigned int> indic
                std::vector<std::shared_ptr<ow::texture>> diffuse_maps,
                std::vector<std::shared_ptr<ow::texture>> specular_maps,
                std::vector<std::shared_ptr<ow::texture>> emission_maps)
-		: m_VAO{}, m_VBO{}, m_EBO{}
+		: m_VAO{}, m_EBO{}, m_VBO{}
 		, m_vertices(std::move(vertices))
 		, m_indices(std::move(indices))
 		, m_diffuse_maps(std::move(diffuse_maps))
@@ -20,7 +20,7 @@ ow::mesh::mesh(std::vector<ow::vertex> vertices, std::vector<unsigned int> indic
 		, m_emission_maps(std::move(emission_maps)) {}
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures)
-		: m_VAO{}, m_VBO{}, m_EBO{}
+		: m_VAO{}, m_EBO{}, m_VBO{}
 		, m_vertices(std::move(vertices))
 		, m_indices(std::move(indices))
 		, m_diffuse_maps()
@@ -33,7 +33,7 @@ ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, 
 }
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices)
-		: m_VAO{}, m_VBO{}, m_EBO{}
+		: m_VAO{}, m_EBO{}, m_VBO{}
 	    , m_vertices(std::move(vertices))
 	    , m_indices(std::move(indices))
 	    , m_diffuse_maps()
@@ -44,8 +44,8 @@ ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices)
 
 ow::mesh::mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}))
 	    : m_VAO{std::exchange(other.m_VAO, 0)}
-	    , m_VBO{std::exchange(other.m_VBO, 0)}
 	    , m_EBO{std::exchange(other.m_EBO, 0)}
+		, m_VBO{std::move(other.m_VBO)}
 	    , m_vertices{std::move(other.m_vertices)}
 	    , m_indices{std::move(other.m_indices)}
 		, m_diffuse_maps(std::move(other.m_diffuse_maps))

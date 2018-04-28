@@ -9,9 +9,9 @@
 #include <ow/mesh.hpp>
 
 ow::mesh::mesh(std::vector<ow::vertex> vertices, std::vector<unsigned int> indices,
-               std::vector<std::shared_ptr<ow::texture>> diffuse_maps,
-               std::vector<std::shared_ptr<ow::texture>> specular_maps,
-               std::vector<std::shared_ptr<ow::texture>> emission_maps)
+			   std::vector<std::shared_ptr<ow::texture>> diffuse_maps,
+			   std::vector<std::shared_ptr<ow::texture>> specular_maps,
+			   std::vector<std::shared_ptr<ow::texture>> emission_maps)
 		: m_VAO{}, m_EBO{}, m_VBO{}
 		, m_vertices(std::move(vertices))
 		, m_indices(std::move(indices))
@@ -34,20 +34,20 @@ ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, 
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices)
 		: m_VAO{}, m_EBO{}, m_VBO{}
-	    , m_vertices(std::move(vertices))
-	    , m_indices(std::move(indices))
-	    , m_diffuse_maps()
+		, m_vertices(std::move(vertices))
+		, m_indices(std::move(indices))
+		, m_diffuse_maps()
 		, m_specular_maps()
 		, m_emission_maps() {
 	_setup_mesh();
 }
 
 ow::mesh::mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<vertex>{}}))
-	    : m_VAO{std::exchange(other.m_VAO, 0)}
-	    , m_EBO{std::exchange(other.m_EBO, 0)}
+		: m_VAO{std::exchange(other.m_VAO, 0)}
+		, m_EBO{std::exchange(other.m_EBO, 0)}
 		, m_VBO{std::move(other.m_VBO)}
-	    , m_vertices{std::move(other.m_vertices)}
-	    , m_indices{std::move(other.m_indices)}
+		, m_vertices{std::move(other.m_vertices)}
+		, m_indices{std::move(other.m_indices)}
 		, m_diffuse_maps(std::move(other.m_diffuse_maps))
 		, m_specular_maps(std::move(other.m_specular_maps))
 		, m_emission_maps(std::move(other.m_emission_maps)) {}
@@ -60,22 +60,22 @@ ow::mesh::~mesh() {
 }
 
 void ow::mesh::draw(const shader_program& prog) const {
-    prog.use();
+	prog.use();
 
 	glBindVertexArray(m_VAO);
 	check_errors("failed to bind VAO. ");
-    size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
-    for (unsigned int i = 0; i < number_of_passes; ++i) {
-    	int next_unit_to_activate = 0;
-	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);
-	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps, texture_type::specular);
-	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps, texture_type::emission);
+	size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
+	for (unsigned int i = 0; i < number_of_passes; ++i) {
+		int next_unit_to_activate = 0;
+		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);
+		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps, texture_type::specular);
+		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps, texture_type::emission);
 
-	    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
-	    check_errors("failed to draw VAO elements. ");
-    }
+		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
+		check_errors("failed to draw VAO elements. ");
+	}
 	// reset
-    glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0) + ". ");
 	glBindVertexArray(0);
 	check_errors("failed to unbind VAO. ");
@@ -134,9 +134,9 @@ void ow::mesh::_setup_mesh() {
 }
 
 void ow::mesh::_activate_next_texture_unit(const shader_program& prog, int* next_unit_to_activate,
-                                           unsigned int current_pass,
-                                           std::vector<std::shared_ptr<ow::texture>> textures,
-                                           ow::texture_type tex_type) const {
+										   unsigned int current_pass,
+										   std::vector<std::shared_ptr<ow::texture>> textures,
+										   ow::texture_type tex_type) const {
 	if (current_pass < textures.size()) {
 		glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(*next_unit_to_activate));
 		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + (*next_unit_to_activate)) + ". ");

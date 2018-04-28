@@ -108,7 +108,7 @@ namespace ow {
 			bind(idx);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(typename T::value_type) * data.size(), data.data(), usage);
 			p_state = p_state &&
-			          check_errors("Error while setting data in buffer " + std::to_string(id(idx)) + ".\n");
+					  check_errors("Error while setting data in buffer " + std::to_string(id(idx)) + ".\n");
 			type(idx) = get_gl_type<typename T::value_type>();
 			usable(idx) = true;
 			size_of(idx) = sizeof(typename T::value_type);

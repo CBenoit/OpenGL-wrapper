@@ -7,7 +7,7 @@ out vec2 vertex_tex_coord;
 uniform mat4 MVP;
 
 void main() {
-    gl_Position = MVP * vec4(pos, 1.0);
-    vertex_tex_coord = tex_coord;
+	gl_Position = MVP * vec4(pos, 1.0);
+	vertex_tex_coord = tex_coord;
 }
 

@@ -54,31 +54,31 @@ ow::mesh::mesh(mesh&& other) noexcept(noexcept(std::vector<vertex>{std::vector<v
 
 ow::mesh::~mesh() {
 	glDeleteVertexArrays(1, &m_VAO);
-	check_errors("error while deleting VAO.");
+	check_errors("error while deleting VAO. ");
 	glDeleteBuffers(1, &m_EBO);
-	check_errors("error while deleting EBO.");
+	check_errors("error while deleting EBO. ");
 }
 
 void ow::mesh::draw(const shader_program& prog) const {
     prog.use();
 
 	glBindVertexArray(m_VAO);
-	check_errors("failed to bind VAO.");
+	check_errors("failed to bind VAO. ");
     size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
     for (unsigned int i = 0; i < number_of_passes; ++i) {
-    	unsigned int next_unit_to_activate = 0;
+    	int next_unit_to_activate = 0;
 	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);
 	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps, texture_type::specular);
 	    _activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps, texture_type::emission);
 
 	    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
-	    check_errors("failed to draw VAO elements.");
+	    check_errors("failed to draw VAO elements. ");
     }
 	// reset
     glActiveTexture(GL_TEXTURE0);
-	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0));
+	check_errors("error while activating texture " + std::to_string(GL_TEXTURE0) + ". ");
 	glBindVertexArray(0);
-	check_errors("failed to unbind VAO.");
+	check_errors("failed to unbind VAO. ");
 }
 
 void ow::mesh::add_texture(std::shared_ptr<ow::texture> texture) {
@@ -99,19 +99,19 @@ void ow::mesh::add_texture(std::shared_ptr<ow::texture> texture) {
 
 void ow::mesh::_setup_mesh() {
 	glGenVertexArrays(1, &m_VAO);
-	check_errors("error while generating VAO.");
+	check_errors("error while generating VAO. ");
 	glGenBuffers(1, &m_EBO);
-	check_errors("error while generating EBO.");
+	check_errors("error while generating EBO. ");
 
 	glBindVertexArray(m_VAO);
-	check_errors("Failed to bind VAO.");
+	check_errors("Failed to bind VAO. ");
 
 	m_VBO.set_data(m_vertices);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-	check_errors("Failed to bind EBO.");
+	check_errors("Failed to bind EBO. ");
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), m_indices.data(), GL_STATIC_DRAW);
-	check_errors("Failed to set EBO data.");
+	check_errors("Failed to set EBO data. ");
 
 	// vertex positions
 	m_VBO.attribs().layout_size = 3u;
@@ -130,20 +130,23 @@ void ow::mesh::_setup_mesh() {
 	m_VBO.flush_layout_attribs();
 
 	glBindVertexArray(0); // unbind the VAO
-	check_errors("Failed to unbind VAO.");
+	check_errors("Failed to unbind VAO. ");
 }
 
-void ow::mesh::_activate_next_texture_unit(const shader_program& prog, unsigned int* next_unit_to_activate,
+void ow::mesh::_activate_next_texture_unit(const shader_program& prog, int* next_unit_to_activate,
                                            unsigned int current_pass,
                                            std::vector<std::shared_ptr<ow::texture>> textures,
                                            ow::texture_type tex_type) const {
 	if (current_pass < textures.size()) {
+		glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(*next_unit_to_activate));
+		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + (*next_unit_to_activate)) + ". ");
+		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
+		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id) + ". ");
+
 		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", true);
 		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate);
-		glActiveTexture(GL_TEXTURE0 + (*next_unit_to_activate)++);
-		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + current_pass));
-		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
-		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id));
+
+		++(*next_unit_to_activate);
 	} else {
 		prog.set("has_" + texture_type_to_string(tex_type) + "_map", false);
 	}

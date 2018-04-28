@@ -16,7 +16,7 @@ std::string ow::texture_type_to_string(texture_type type) {
         return "specular";
     case texture_type::emission:
         return "emission";
-    default:
+    default: // NOLINT
         return "";
     }
 }

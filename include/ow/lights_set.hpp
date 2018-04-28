@@ -18,34 +18,34 @@ public:
     lights_set() : m_dir_lights(), m_point_lights(), m_spotlights() {}
 
     void update_all(const shader_program& prog, glm::mat4 view) const {
-        prog.set("nbr_dir_lights", m_dir_lights.size());
+        prog.set("nbr_dir_lights", static_cast<int>(m_dir_lights.size()));
         for (auto i = m_dir_lights.size(); i--;) {
             m_dir_lights[i]->update_all(prog, view, "dir_lights[" + std::to_string(i) + "].");
         }
 
-        prog.set("nbr_point_lights", m_point_lights.size());
+        prog.set("nbr_point_lights", static_cast<int>(m_point_lights.size()));
         for (auto i = m_point_lights.size(); i--;) {
             m_point_lights[i]->update_all(prog, view, "point_lights[" + std::to_string(i) + "].");
         }
 
-        prog.set("nbr_spotlights", m_spotlights.size());
+        prog.set("nbr_spotlights", static_cast<int>(m_spotlights.size()));
         for (auto i = m_spotlights.size(); i--;) {
             m_spotlights[i]->update_all(prog, view, "spotlights[" + std::to_string(i) + "].");
         }
     }
 
     void update_position_and_direction(const shader_program& prog, glm::mat4 view) {
-        prog.set("nbr_dir_lights", m_dir_lights.size());
+        prog.set("nbr_dir_lights", static_cast<int>(m_dir_lights.size()));
         for (auto i = m_dir_lights.size(); i--;) {
             m_dir_lights[i]->update_direction(prog, view, "dir_lights[" + std::to_string(i) + "].");
         }
 
-        prog.set("nbr_point_lights", m_point_lights.size());
+        prog.set("nbr_point_lights", static_cast<int>(m_point_lights.size()));
         for (auto i = m_point_lights.size(); i--;) {
             m_point_lights[i]->update_position(prog, view, "point_lights[" + std::to_string(i) + "].");
         }
 
-        prog.set("nbr_spotlights", m_spotlights.size());
+        prog.set("nbr_spotlights", static_cast<int>(m_spotlights.size()));
         for (auto i = m_spotlights.size(); i--;) {
             m_spotlights[i]->update_position_and_direction(prog, view, "spotlights[" + std::to_string(i) + "].");
         }

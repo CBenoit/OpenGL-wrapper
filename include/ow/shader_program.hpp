@@ -51,65 +51,55 @@ public:
         using namespace std;
         using namespace glm;
 
+	    auto loc = glGetUniformLocation(m_program_id, name.data());
+	    if (!check_errors("error when getting uniform location '" + std::string(name) + "' ")) {
+			return;
+	    }
+
         if constexpr (is_same_v<bool, T>) {
-            glUniform1i(glGetUniformLocation(m_program_id, name.data()), value ? GL_TRUE : GL_FALSE);
-
+            glUniform1i(loc, value ? GL_TRUE : GL_FALSE);
         } else if constexpr (is_same_v<int, T>) {
-            glUniform1i(glGetUniformLocation(m_program_id, name.data()), value);
-
+            glUniform1i(loc, value);
         } else if constexpr (is_same_v<float, T>) {
-            glUniform1f(glGetUniformLocation(m_program_id, name.data()), value);
-
+            glUniform1f(loc, value);
         } else if constexpr (is_same_v<unsigned int, T> || is_same_v<unsigned long, T>) {
-            glUniform1ui(glGetUniformLocation(m_program_id, name.data()), static_cast<unsigned int>(value));
-
+            glUniform1ui(loc, static_cast<unsigned int>(value));
         } else if constexpr (is_same_v<tuple<float, float, float, float>, T>) {
-            glUniform4f(glGetUniformLocation(m_program_id, name.data()),
+            glUniform4f(loc,
                         get<0>(value),
                         get<1>(value),
                         get<2>(value),
                         get<3>(value)
             );
-
         } else if constexpr (is_same_v<tuple<float, float, float>, T>) {
-            glUniform3f(glGetUniformLocation(m_program_id, name.data()),
+            glUniform3f(loc,
                         get<0>(value),
                         get<1>(value),
                         get<2>(value)
             );
-
         } else if constexpr (is_same_v<tuple<float, float>, T>) {
-            glUniform2f(glGetUniformLocation(m_program_id, name.data()),
+            glUniform2f(loc,
                         get<0>(value),
                         get<1>(value)
             );
-
         } else if constexpr (is_same_v<vec4, T>) {
-            glUniform4fv(glGetUniformLocation(m_program_id, name.data()), 1, value_ptr(value));
-
+            glUniform4fv(loc, 1, value_ptr(value));
         } else if constexpr (is_same_v<vec3, T>) {
-            glUniform3fv(glGetUniformLocation(m_program_id, name.data()), 1, value_ptr(value));
-
+            glUniform3fv(loc, 1, value_ptr(value));
         } else if constexpr (is_same_v<vec2, T>) {
-            glUniform2fv(glGetUniformLocation(m_program_id, name.data()), 1, value_ptr(value));
-
+            glUniform2fv(loc, 1, value_ptr(value));
         } else if constexpr (is_same_v<mat4, T>) {
-            glUniformMatrix4fv(glGetUniformLocation(m_program_id, name.data()), 1, GL_FALSE, value_ptr(value));
-
+            glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(value));
         } else if constexpr (is_same_v<mat3, T>) {
-            glUniformMatrix3fv(glGetUniformLocation(m_program_id, name.data()), 1, GL_FALSE, value_ptr(value));
-
+            glUniformMatrix3fv(loc, 1, GL_FALSE, value_ptr(value));
         } else if constexpr (is_same_v<mat2, T>) {
-            glUniformMatrix2fv(glGetUniformLocation(m_program_id, name.data()), 1, GL_FALSE, value_ptr(value));
-
+            glUniformMatrix2fv(loc, 1, GL_FALSE, value_ptr(value));
         } else {
             static_assert(is_same_v<T,T*>, "Unknown type");
         }
 
-        // TODO: add check errors
-        check_errors("TODO ERROR!");
+        check_errors("error when setting uniform '" + std::string(name) + "'@" + std::to_string(loc) + " ");
     }
-
 
 private:
     static bool load_shader(GLuint shader, std::string_view file_name);

@@ -17,7 +17,9 @@ ow::mesh::mesh(std::vector<ow::vertex> vertices, std::vector<unsigned int> indic
 		, m_indices(std::move(indices))
 		, m_diffuse_maps(std::move(diffuse_maps))
 		, m_specular_maps(std::move(specular_maps))
-		, m_emission_maps(std::move(emission_maps)) {}
+		, m_emission_maps(std::move(emission_maps)) {
+	_setup_mesh();
+}
 
 ow::mesh::mesh(std::vector<vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<texture>> textures)
 		: m_VAO{}, m_EBO{}, m_VBO{}
@@ -71,6 +73,9 @@ void ow::mesh::draw(const shader_program& prog) const {
 		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_specular_maps, texture_type::specular);
 		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_emission_maps, texture_type::emission);
 
+		assert(m_VAO != 0);
+		assert(!m_indices.empty());
+		assert(m_indices.size() % 3 == 0);
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_indices.size()), GL_UNSIGNED_INT, 0);
 		check_errors("failed to draw VAO elements. ");
 	}

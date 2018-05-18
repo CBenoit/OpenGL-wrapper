@@ -15,21 +15,21 @@
 #endif
 
 #include <ow/shader_program.hpp>
-#include "ImguiImpl.hpp"
+#include <gui/imgui_impl.hpp>
 
 namespace {
 	GLFWwindow* s_window             = nullptr;
 	double s_time                    = 0.f;
-	std::bitset<3> s_mousePressed    = {0};
-	float s_mouseWheel               = 0.f;
-	GLuint s_fontTexture             = 0;
+	std::bitset<3> s_mouse_pressed   = {0};
+	float s_mouse_wheel              = 0.f;
+	GLuint s_font_texture            = 0;
+	unsigned int s_vbo_handle        = 0;
+	unsigned int s_vao_handle        = 0;
+	unsigned int s_elements_handle   = 0;
 	ow::shader_program s_shader_program;
-	unsigned int s_vboHandle         = 0;
-	unsigned int s_vaoHandle         = 0;
-	unsigned int s_elementsHandle    = 0;
 }
 
-void gui::ImguiImpl::init(GLFWwindow* window) {
+void gui::imgui_impl::init(GLFWwindow* window) {
 	s_window = window;
 
 	ImGuiIO& io                       = ImGui::GetIO();
@@ -54,8 +54,8 @@ void gui::ImguiImpl::init(GLFWwindow* window) {
 	io.KeyMap[ImGuiKey_Z]             = GLFW_KEY_Z;
 
 	// Set render callback
-	io.SetClipboardTextFn             = ImguiImpl::setClipboardText;
-	io.GetClipboardTextFn             = ImguiImpl::getClipboardText;
+	io.SetClipboardTextFn             = imgui_impl::set_clipboard_text;
+	io.GetClipboardTextFn             = imgui_impl::get_clipboard_text;
 	io.ClipboardUserData              = s_window;
 #ifdef _WIN32
 	io.ImeWindowHandle                = glfwGetWin32Window(s_window);
@@ -63,52 +63,52 @@ void gui::ImguiImpl::init(GLFWwindow* window) {
 
 }
 
-void gui::ImguiImpl::shutdown() {
-	ImguiImpl::invalidateDeviceObjects();
+void gui::imgui_impl::shutdown() {
+	imgui_impl::invalidate_device_objects();
 	ImGui::DestroyContext();
 }
 
-void gui::ImguiImpl::render() {
+void gui::imgui_impl::render() {
 	ImGui::Render();
-	ImDrawData* drawData = ImGui::GetDrawData();
+	ImDrawData* draw_data = ImGui::GetDrawData();
 	// Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
 	ImGuiIO& io = ImGui::GetIO();
-	auto framebufferWidth = static_cast<int>(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-	auto framebufferHeight = static_cast<int>(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-	if (framebufferWidth == 0 || framebufferHeight == 0)
+	auto framebuffer_width = static_cast<int>(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+	auto framebuffer_height = static_cast<int>(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+	if (framebuffer_width == 0 || framebuffer_height == 0)
 		return;
 
-	drawData->ScaleClipRects(io.DisplayFramebufferScale);
+	draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
 	// Save OpenGL state to restore it after drawing imgui.
-	GLint lastProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
-	GLint lastTexture;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastTexture);
-	GLint lastActiveTexture;
-	glGetIntegerv(GL_ACTIVE_TEXTURE, &lastActiveTexture);
-	GLint lastArrayBuffer;
-	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &lastArrayBuffer);
-	GLint lastElementArrayBuffer;
-	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &lastElementArrayBuffer);
-	GLint lastVertexArray;
-	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &lastVertexArray);
-	GLint lastBlendSrc;
-	glGetIntegerv(GL_BLEND_SRC, &lastBlendSrc);
-	GLint lastBlendDst;
-	glGetIntegerv(GL_BLEND_DST, &lastBlendDst);
-	GLint lastBlendEquationRgb;
-	glGetIntegerv(GL_BLEND_EQUATION_RGB, &lastBlendEquationRgb);
-	GLint lastBlendEquationAlpha;
-	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &lastBlendEquationAlpha);
-	GLint lastViewport[4];
-	glGetIntegerv(GL_VIEWPORT, lastViewport);
-	GLint lastScissorBox[4];
-	glGetIntegerv(GL_SCISSOR_BOX, lastScissorBox);
-	GLboolean lastEnableBlend = glIsEnabled(GL_BLEND);
-	GLboolean lastEnableCullFace = glIsEnabled(GL_CULL_FACE);
-	GLboolean lastEnableDepthTest = glIsEnabled(GL_DEPTH_TEST);
-	GLboolean lastEnableScissorTest = glIsEnabled(GL_SCISSOR_TEST);
+	GLint last_program;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &last_program);
+	GLint last_texture;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+	GLint last_active_texture;
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture);
+	GLint last_array_buffer;
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+	GLint last_element_array_buffer;
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
+	GLint last_vertex_array;
+	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
+	GLint last_blend_src;
+	glGetIntegerv(GL_BLEND_SRC, &last_blend_src);
+	GLint last_blend_dst;
+	glGetIntegerv(GL_BLEND_DST, &last_blend_dst);
+	GLint last_blend_equation_rgb;
+	glGetIntegerv(GL_BLEND_EQUATION_RGB, &last_blend_equation_rgb);
+	GLint last_blend_equation_alpha;
+	glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &last_blend_equation_alpha);
+	GLint last_viewport[4];
+	glGetIntegerv(GL_VIEWPORT, last_viewport);
+	GLint last_scissor_box[4];
+	glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box);
+	GLboolean last_enable_blend = glIsEnabled(GL_BLEND);
+	GLboolean last_enable_cullface = glIsEnabled(GL_CULL_FACE);
+	GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+	GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
 
 	// Setup Imgui Render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
 	glEnable(GL_BLEND);
@@ -120,7 +120,7 @@ void gui::ImguiImpl::render() {
 	glActiveTexture(GL_TEXTURE0);
 
 	// Setup viewport from imgui information.
-	glViewport(0, 0, framebufferWidth, framebufferHeight);
+	glViewport(0, 0, framebuffer_width, framebuffer_height);
 
 	glm::mat4x4 mat4x4 = glm::ortho(0.f, io.DisplaySize.x, io.DisplaySize.y, 0.f);
 
@@ -129,18 +129,18 @@ void gui::ImguiImpl::render() {
 	s_shader_program.set("Texture", 0);
 	s_shader_program.set("ProjMtx", mat4x4);
 
-	glBindVertexArray(s_vaoHandle);
+	glBindVertexArray(s_vao_handle);
 
-	for (int n = 0; n < drawData->CmdListsCount; n++) {
-		const ImDrawList* cmd_list = drawData->CmdLists[n];
+	for (int n = 0; n < draw_data->CmdListsCount; n++) {
+		const ImDrawList* cmd_list = draw_data->CmdLists[n];
 		const ImDrawIdx* idx_buffer_offset = nullptr;
 
-		glBindBuffer(GL_ARRAY_BUFFER, s_vboHandle);
+		glBindBuffer(GL_ARRAY_BUFFER, s_vbo_handle);
 		glBufferData(GL_ARRAY_BUFFER,
 		             static_cast<GLsizeiptr>(static_cast<long unsigned int>(cmd_list->VtxBuffer.Size) * sizeof(ImDrawVert)),
 		             static_cast<const GLvoid*>(cmd_list->VtxBuffer.Data), GL_STREAM_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_elementsHandle);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_elements_handle);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 		             static_cast<GLsizeiptr>(static_cast<long unsigned int>(cmd_list->IdxBuffer.Size) * sizeof(ImDrawIdx)),
 		             static_cast<const GLvoid*>(cmd_list->IdxBuffer.Data), GL_STREAM_DRAW);
@@ -152,7 +152,7 @@ void gui::ImguiImpl::render() {
 			} else {
 				glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<intptr_t>(pcmd->TextureId)));
 				glScissor(static_cast<GLint>(pcmd->ClipRect.x),
-				          static_cast<GLint>(static_cast<float>(framebufferHeight)- pcmd->ClipRect.w),
+				          static_cast<GLint>(static_cast<float>(framebuffer_height)- pcmd->ClipRect.w),
 				          static_cast<GLsizei>(pcmd->ClipRect.z - pcmd->ClipRect.x),
 				          static_cast<GLsizei>(pcmd->ClipRect.w - pcmd->ClipRect.y));
 				glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(pcmd->ElemCount),
@@ -163,48 +163,48 @@ void gui::ImguiImpl::render() {
 	}
 
 	// Restore modified GL state
-	glUseProgram(static_cast<GLuint>(lastProgram));
-	glActiveTexture(static_cast<GLuint>(lastActiveTexture));
-	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(lastTexture));
-	glBindVertexArray(static_cast<GLuint>(lastVertexArray));
-	glBindBuffer(GL_ARRAY_BUFFER, static_cast<GLuint>(lastArrayBuffer));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLuint>(lastElementArrayBuffer));
-	glBlendEquationSeparate(static_cast<GLuint>(lastBlendEquationRgb), static_cast<GLuint>(lastBlendEquationAlpha));
-	glBlendFunc(static_cast<GLuint>(lastBlendSrc), static_cast<GLuint>(lastBlendDst));
-	if (lastEnableBlend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-	if (lastEnableCullFace) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
-	if (lastEnableDepthTest) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-	if (lastEnableScissorTest) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-	glViewport(lastViewport[0], lastViewport[1], lastViewport[2], lastViewport[3]);
-	glScissor(lastScissorBox[0], lastScissorBox[1], lastScissorBox[2], lastScissorBox[3]);
+	glUseProgram(static_cast<GLuint>(last_program));
+	glActiveTexture(static_cast<GLuint>(last_active_texture));
+	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(last_texture));
+	glBindVertexArray(static_cast<GLuint>(last_vertex_array));
+	glBindBuffer(GL_ARRAY_BUFFER, static_cast<GLuint>(last_array_buffer));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLuint>(last_element_array_buffer));
+	glBlendEquationSeparate(static_cast<GLuint>(last_blend_equation_rgb), static_cast<GLuint>(last_blend_equation_alpha));
+	glBlendFunc(static_cast<GLuint>(last_blend_src), static_cast<GLuint>(last_blend_dst));
+	if (last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+	if (last_enable_cullface) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+	if (last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+	if (last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+	glViewport(last_viewport[0], last_viewport[1], last_viewport[2], last_viewport[3]);
+	glScissor(last_scissor_box[0], last_scissor_box[1], last_scissor_box[2], last_scissor_box[3]);
 }
 
-const char* gui::ImguiImpl::getClipboardText(void* window) {
+const char* gui::imgui_impl::get_clipboard_text(void *window) {
 	return glfwGetClipboardString(static_cast<GLFWwindow*>(window));
 }
 
-void gui::ImguiImpl::setClipboardText(void* window, const char* str) {
+void gui::imgui_impl::set_clipboard_text(void *window, const char *str) {
 	glfwSetClipboardString(static_cast<GLFWwindow*>(window), str);
 }
 
-bool gui::ImguiImpl::isWindowHovered() {
+bool gui::imgui_impl::is_window_hovered() {
     return ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
 }
 
-bool gui::ImguiImpl::isWindowFocused() {
+bool gui::imgui_impl::is_window_focused() {
     return ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow);
 }
 
-void gui::ImguiImpl::onMouseButton(int button, int action, int /*mods*/) {
+void gui::imgui_impl::on_mouse_button(int button, int action, int /*mods*/) {
 	if (action == GLFW_PRESS && button >= 0 && button < 3)
-		s_mousePressed[static_cast<std::size_t>(button)] = true;
+		s_mouse_pressed[static_cast<std::size_t>(button)] = true;
 }
 
-void gui::ImguiImpl::onScroll(double /*xoffset*/, double yoffset) {
-	s_mouseWheel += static_cast<float>(yoffset);
+void gui::imgui_impl::on_scroll(double /*xoffset*/, double yoffset) {
+	s_mouse_wheel += static_cast<float>(yoffset);
 }
 
-void gui::ImguiImpl::onKey(int key, int /*scancode*/, int action, int mods) {
+void gui::imgui_impl::on_key(int key, int /*scancode*/, int action, int mods) {
 	ImGuiIO& io = ImGui::GetIO();
 	if (action == GLFW_PRESS)
 		io.KeysDown[key] = true;
@@ -218,13 +218,13 @@ void gui::ImguiImpl::onKey(int key, int /*scancode*/, int action, int mods) {
 	io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
 }
 
-void gui::ImguiImpl::onChar(unsigned int c) {
+void gui::imgui_impl::on_char(unsigned int c) {
 	ImGuiIO& io = ImGui::GetIO();
 	if (c > 0 && c < 0x10000)
 		io.AddInputCharacter(static_cast<ImWchar>(c));
 }
 
-bool gui::ImguiImpl::createFontsTexture() {
+bool gui::imgui_impl::create_fonts_texture() {
 	// Build texture atlas
 	ImGuiIO& io = ImGui::GetIO();
 	unsigned char* pixels;
@@ -235,14 +235,14 @@ bool gui::ImguiImpl::createFontsTexture() {
 	// Upload texture to graphics system
 	GLint last_texture;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-	glGenTextures(1, &s_fontTexture);
-	glBindTexture(GL_TEXTURE_2D, s_fontTexture);
+	glGenTextures(1, &s_font_texture);
+	glBindTexture(GL_TEXTURE_2D, s_font_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	// Store our identifier
-	io.Fonts->TexID = reinterpret_cast<void*>(static_cast<intptr_t>(s_fontTexture));
+	io.Fonts->TexID = reinterpret_cast<void*>(static_cast<intptr_t>(s_font_texture));
 
 	// Restore state
 	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(last_texture));
@@ -250,24 +250,24 @@ bool gui::ImguiImpl::createFontsTexture() {
 	return true;
 }
 
-bool gui::ImguiImpl::createDeviceObjects() { // TODO
+bool gui::imgui_impl::create_device_objects() {
 	// Backup OpenGL state
-	GLint lastTexture, lastArrayBuffer, lastVertexArray;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastTexture);
-	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &lastArrayBuffer);
-	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &lastVertexArray);
+	GLint last_texture, last_array_buffer, last_vertex_array;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer);
+	glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array);
 
 	s_shader_program.put({
 		{GL_VERTEX_SHADER,   "imgui_vertex.glsl"},
 		{GL_FRAGMENT_SHADER, "imgui_frag.glsl"}
 	});
 
-	glGenBuffers(1, &s_vboHandle);
-	glGenBuffers(1, &s_elementsHandle);
-	glGenVertexArrays(1, &s_vaoHandle);
+	glGenBuffers(1, &s_vbo_handle);
+	glGenBuffers(1, &s_elements_handle);
+	glGenVertexArrays(1, &s_vao_handle);
 
-	glBindVertexArray(s_vaoHandle);
-	glBindBuffer(GL_ARRAY_BUFFER, s_vboHandle);
+	glBindVertexArray(s_vao_handle);
+	glBindBuffer(GL_ARRAY_BUFFER, s_vbo_handle);
 
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), reinterpret_cast<void*>(offsetof(ImDrawVert, pos)));
 	glEnableVertexAttribArray(0);
@@ -276,41 +276,41 @@ bool gui::ImguiImpl::createDeviceObjects() { // TODO
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), reinterpret_cast<void*>(offsetof(ImDrawVert, col)));
 	glEnableVertexAttribArray(2);
 
-	createFontsTexture();
+	create_fonts_texture();
 
 	// Restore modified OpenGL state
-	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(lastTexture));
-	glBindBuffer(GL_ARRAY_BUFFER, static_cast<GLuint>(lastArrayBuffer));
-	glBindVertexArray(static_cast<GLuint>(lastVertexArray));
+	glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(last_texture));
+	glBindBuffer(GL_ARRAY_BUFFER, static_cast<GLuint>(last_array_buffer));
+	glBindVertexArray(static_cast<GLuint>(last_vertex_array));
 
 	return true;
 }
 
-void gui::ImguiImpl::invalidateDeviceObjects() {
-	if (s_vaoHandle) {
-		glDeleteVertexArrays(1, &s_vaoHandle);
+void gui::imgui_impl::invalidate_device_objects() {
+	if (s_vao_handle) {
+		glDeleteVertexArrays(1, &s_vao_handle);
 	}
 
-	if (s_vboHandle) {
-		glDeleteBuffers(1, &s_vboHandle);
+	if (s_vbo_handle) {
+		glDeleteBuffers(1, &s_vbo_handle);
 	}
 
-	if (s_elementsHandle) {
-		glDeleteBuffers(1, &s_elementsHandle);
+	if (s_elements_handle) {
+		glDeleteBuffers(1, &s_elements_handle);
 	}
 
-	s_vaoHandle = s_vboHandle = s_elementsHandle = 0;
+	s_vao_handle = s_vbo_handle = s_elements_handle = 0;
 
-	if (s_fontTexture) {
-		glDeleteTextures(1, &s_fontTexture);
+	if (s_font_texture) {
+		glDeleteTextures(1, &s_font_texture);
 		ImGui::GetIO().Fonts->TexID = nullptr;
-		s_fontTexture = 0;
+		s_font_texture = 0;
 	}
 }
 
-void gui::ImguiImpl::newFrame() {
-	if (!s_fontTexture)
-		ImguiImpl::createDeviceObjects();
+void gui::imgui_impl::new_frame() {
+	if (!s_font_texture)
+		imgui_impl::create_device_objects();
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -339,12 +339,12 @@ void gui::ImguiImpl::newFrame() {
 
 	// Test for event shorter than 1 frame.
 	for (size_t i = 0; i < 3UL; i++) {
-		io.MouseDown[i] = s_mousePressed[i] || glfwGetMouseButton(s_window, static_cast<int>(i)) != 0;
-		s_mousePressed[i] = false;
+		io.MouseDown[i] = s_mouse_pressed[i] || glfwGetMouseButton(s_window, static_cast<int>(i)) != 0;
+		s_mouse_pressed[i] = false;
 	}
 
-	io.MouseWheel = s_mouseWheel;
-	s_mouseWheel = 0.0f;
+	io.MouseWheel = s_mouse_wheel;
+	s_mouse_wheel = 0.0f;
 
 	// Hide OS mouse cursor if ImGui is drawing it
 	glfwSetInputMode(s_window, GLFW_CURSOR, io.MouseDrawCursor ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);

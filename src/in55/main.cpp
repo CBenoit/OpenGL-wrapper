@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui/imgui.h>
+
 #include <ow/shader_program.hpp>
 #include <ow/camera_fps.hpp>
 #include <ow/vertex.hpp>
@@ -18,9 +20,7 @@
 #include <ow/texture.hpp>
 #include <ow/model.hpp>
 #include <ow/utils.hpp>
-#include <imgui/imgui.h>
-#include "../imgui/ImguiImpl.hpp"
-
+#include <gui/imgui_impl.hpp>
 
 void process_input(GLFWwindow* window, float dt);
 
@@ -28,9 +28,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-
 namespace {
-
 	// settings
 	constexpr unsigned int SCR_WIDTH = 800;
 	constexpr unsigned int SCR_HEIGHT = 600;
@@ -38,8 +36,8 @@ namespace {
 	// initialize camera system
 	// ------------------------
 	ow::camera_fps camera{glm::vec3(0, 0, 3)};
-	auto last_x = static_cast<float>(SCR_WIDTH) / 2.f;
-	auto last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
+	auto last_x = static_cast<float>(800) / 2.f;
+	auto last_y = static_cast<float>(600) / 2.f;
 	bool first_mouse = true;
 }
 
@@ -81,9 +79,9 @@ int main() {
 	// ImGUI
 	// -----
 	ImGui::CreateContext();
-	gui::ImguiImpl::init(window);
+	gui::imgui_impl::init(window);
 	ImGui::GetIO().IniFilename = nullptr;
-	gui::ImguiImpl::newFrame();
+	gui::imgui_impl::new_frame();
 
 	// game loop
 	// -----------
@@ -111,8 +109,8 @@ int main() {
 		// -----
 		static bool open = true;
 		ImGui::ShowDemoWindow(&open);
-		gui::ImguiImpl::render();
-		gui::ImguiImpl::newFrame();
+		gui::imgui_impl::render();
+		gui::imgui_impl::new_frame();
 
 		// glfw: swap buffers and poll IO events
 		// -------------------------------------
@@ -125,7 +123,7 @@ int main() {
 
 	// imgui
 	// -----
-	gui::ImguiImpl::shutdown();
+	gui::imgui_impl::shutdown();
 
 	return EXIT_SUCCESS;
 }
@@ -185,4 +183,3 @@ void mouse_callback(GLFWwindow*, double xpos, double ypos) {
 void scroll_callback(GLFWwindow*, double, double yoffset) {
 	camera.process_mouse_scroll(static_cast<float>(yoffset));
 }
-

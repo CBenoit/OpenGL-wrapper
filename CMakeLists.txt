@@ -24,7 +24,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
-set(IMGUI_IMPL_SOURCES src/imgui/ImguiImpl.cpp)
+file(GLOB_RECURSE GUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/*.cpp)
 
 set(IN55_SOURCES src/in55/main.cpp)
 set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
@@ -40,7 +40,7 @@ add_executable(
         IN55_solids
         ${IN55_SOURCES}
         ${OW_SOURCES}
-        ${IMGUI_IMPL_SOURCES}
+        ${GUI_SOURCES}
 )
 
 add_executable(

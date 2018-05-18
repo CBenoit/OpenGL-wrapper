@@ -1,4 +1,5 @@
 #version 330 core
+
 // === input ===
 
 in vec3 vertex_normal;

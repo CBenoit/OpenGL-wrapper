@@ -24,6 +24,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
+set(IMGUI_IMPL_SOURCES src/imgui/ImguiImpl.cpp)
 
 set(IN55_SOURCES src/in55/main.cpp)
 set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
@@ -32,13 +33,14 @@ set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)
 
 include_directories(
         include/
-        external/
+        SYSTEM external/
 )
 
 add_executable(
         IN55_solids
         ${IN55_SOURCES}
         ${OW_SOURCES}
+        ${IMGUI_IMPL_SOURCES}
 )
 
 add_executable(
@@ -59,7 +61,7 @@ add_executable(
         ${OW_SOURCES}
 )
 
-target_link_libraries(IN55_solids stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
+target_link_libraries(IN55_solids imgui stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_getting_started stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_lights stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_model_loading stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})

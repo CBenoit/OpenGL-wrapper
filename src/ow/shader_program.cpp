@@ -16,6 +16,11 @@ ow::shader_program::shader_program(shader_program&& other) noexcept
 {}
 
 bool ow::shader_program::put(const std::vector<std::pair<GLenum, std::string_view>>& shaders) {
+	if (get_id() == 0) {
+		m_program_id = glCreateProgram();
+		p_state = (get_id() != 0);
+	}
+
 	chk_state();
 
 	for (auto&& shader : shaders) {

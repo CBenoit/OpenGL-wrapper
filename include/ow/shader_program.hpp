@@ -14,9 +14,7 @@ namespace ow {
 
 class shader_program : public checkable {
 public:
-	shader_program() : checkable{}, m_program_id{glCreateProgram()} {
-		p_state = (get_id() != 0);
-	}
+	shader_program() : checkable{}, m_program_id{0} {}
 
 	explicit shader_program(const std::vector<std::pair<GLenum, std::string_view>>& shaders) : shader_program() {
 		put(shaders);

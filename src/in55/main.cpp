@@ -18,6 +18,8 @@
 #include <ow/texture.hpp>
 #include <ow/model.hpp>
 #include <ow/utils.hpp>
+#include <imgui/imgui.h>
+#include "../imgui/ImguiImpl.hpp"
 
 
 void process_input(GLFWwindow* window, float dt);
@@ -76,6 +78,13 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	ow::check_errors("Failed to set GL_DEPTH_TEST.");
 
+	// ImGUI
+	// -----
+	ImGui::CreateContext();
+	gui::ImguiImpl::init(window);
+	ImGui::GetIO().IniFilename = nullptr;
+	gui::ImguiImpl::newFrame();
+
 	// game loop
 	// -----------
 	float delta_time = 0.0f;	// time between current frame and last frame
@@ -98,6 +107,13 @@ int main() {
 
 		// ...
 
+		// imgui
+		// -----
+		static bool open = true;
+		ImGui::ShowDemoWindow(&open);
+		gui::ImguiImpl::render();
+		gui::ImguiImpl::newFrame();
+
 		// glfw: swap buffers and poll IO events
 		// -------------------------------------
 		glfwSwapBuffers(window);
@@ -106,6 +122,10 @@ int main() {
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	glfwTerminate();
+
+	// imgui
+	// -----
+	gui::ImguiImpl::shutdown();
 
 	return EXIT_SUCCESS;
 }

@@ -36,9 +36,9 @@ constexpr float DEFAULT_FOV		 =  M_PI_FLT / 4.f;
 class camera_fps
 {
 public:
-	camera_fps(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
-			glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-			float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH);
+	explicit camera_fps(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
+						glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+						float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH) noexcept;
 
 	// Returns the view matrix calculated using Euler Angles and the LookAt Matrix
 	glm::mat4 get_view_matrix() const {
@@ -57,7 +57,7 @@ public:
 
 	// Processes input received from a mouse input system.
 	// Expects the offset value in both the x and y direction.
-	void process_mouse_movement(float xoffset, float yoffset, GLboolean constrain_pitch = true);
+	void process_mouse_movement(float xoffset, float yoffset, bool constrain_pitch = true);
 
 	// Processes input received from a mouse scroll-wheel event.
 	// Only requires input on the vertical wheel-axis

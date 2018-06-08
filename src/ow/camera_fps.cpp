@@ -9,7 +9,7 @@
 #include <ow/camera_fps.hpp>
 #include <ow/utils.hpp>
 
-ow::camera_fps::camera_fps(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+ow::camera_fps::camera_fps(glm::vec3 position, glm::vec3 up, float yaw, float pitch) noexcept
 	: m_pos(position)
 	, m_front(glm::vec3(0.0f, 0.0f, -1.0f))
 	, m_up{}
@@ -50,7 +50,7 @@ void ow::camera_fps::process_movement(camera_movement direction, float dt) {
 	}
 }
 
-void ow::camera_fps::process_mouse_movement(float xoffset, float yoffset, GLboolean constrain_pitch) {
+void ow::camera_fps::process_mouse_movement(float xoffset, float yoffset, bool constrain_pitch) {
 	xoffset *= m_mouse_sensitivity;
 	yoffset *= m_mouse_sensitivity;
 

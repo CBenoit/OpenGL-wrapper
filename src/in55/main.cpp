@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui/imgui.h>
+#include <imgui/imgui.h> // TO GET RID OF
 
 #include <ow/shader_program.hpp>
 #include <ow/camera_fps.hpp>
@@ -20,9 +20,10 @@
 #include <ow/texture.hpp>
 #include <ow/model.hpp>
 #include <ow/utils.hpp>
-#include <gui/imgui_impl.hpp>
+#include <gui/window.hpp>
+#include <gui/imgui_impl.hpp> // TO GET RID OF
 
-void process_input(GLFWwindow* window, float dt);
+void process_input(gui::window& window, float dt);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -42,28 +43,16 @@ namespace {
 }
 
 int main() {
-	// glfw: initialize and configure
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // for MAC OSX to be happy
-#endif
-
-	// glfw window creation
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "IN55", nullptr, nullptr);
-	if (window == nullptr) {
-		ow::logger << "Failed to create GLFW winow" << std::endl;
-		glfwTerminate();
+	gui::window window{ "IN55", SCR_WIDTH, SCR_HEIGHT, nullptr, nullptr };
+	if (window.invalid()) {
+		ow::logger << "Failed to create window" << std::endl;
 		return EXIT_FAILURE;
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+
+	window.make_context_current();
+	window.set_framebuffer_size_callback(framebuffer_size_callback);
+	window.set_cursor_pos_callback(mouse_callback);
+	window.set_scroll_callback(scroll_callback);
 
 	// glad: load all OpenGL function pointers
 	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
@@ -76,18 +65,15 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	ow::check_errors("Failed to set GL_DEPTH_TEST.");
 
-	// ImGUI
-	// -----
-	ImGui::CreateContext();
-	gui::imgui_impl::init(window);
-	ImGui::GetIO().IniFilename = nullptr;
-	gui::imgui_impl::new_frame();
+	// Init ImGui
+	// ==========
+	window.init_imgui();
 
 	// game loop
 	// -----------
 	float delta_time = 0.0f;	// time between current frame and last frame
 	float last_frame = 0.0f; // time of last frame
-	while (!glfwWindowShouldClose(window)) {
+	while (!window.should_close()) {
 		auto current_frame = static_cast<float>(glfwGetTime());
 		delta_time = current_frame - last_frame;
 		last_frame = current_frame;
@@ -105,51 +91,34 @@ int main() {
 
 		// ...
 
-		// imgui
-		// -----
-		static bool open = true;
-		ImGui::ShowDemoWindow(&open);
-		gui::imgui_impl::render();
-		gui::imgui_impl::new_frame();
-
-		// glfw: swap buffers and poll IO events
-		// -------------------------------------
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		window.render();
 	}
-
-	// glfw: terminate, clearing all previously allocated GLFW resources.
-	glfwTerminate();
-
-	// imgui
-	// -----
-	gui::imgui_impl::shutdown();
 
 	return EXIT_SUCCESS;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released
 // this frame and react accordingly
-void process_input(GLFWwindow* window, float dt) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
+void process_input(gui::window& window, float dt) {
+	if (window.get_key(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		window.set_should_close(true);
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+	if (window.get_key(GLFW_KEY_W) == GLFW_PRESS) {
 		camera.process_movement(ow::FORWARD, dt);
-	} else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+	} else if (window.get_key(GLFW_KEY_S) == GLFW_PRESS) {
 		camera.process_movement(ow::BACKWARD, dt);
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+	if (window.get_key(GLFW_KEY_A) == GLFW_PRESS) {
 		camera.process_movement(ow::LEFT, dt);
-	} else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+	} else if (window.get_key(GLFW_KEY_D) == GLFW_PRESS) {
 		camera.process_movement(ow::RIGHT, dt);
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+	if (window.get_key(GLFW_KEY_SPACE) == GLFW_PRESS) {
 		camera.process_movement(ow::UP, dt);
-	} else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+	} else if (window.get_key(GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 		camera.process_movement(ow::DOWN, dt);
 	}
 }

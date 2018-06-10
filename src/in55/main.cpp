@@ -21,7 +21,8 @@
 #include <ow/model.hpp>
 #include <ow/utils.hpp>
 #include <gui/window.hpp>
-#include <gui/imgui_impl.hpp> // TO GET RID OF
+
+#include "parametrical_object.hpp"
 
 void process_input(gui::window& window, float dt);
 
@@ -69,6 +70,40 @@ int main() {
 	// ==========
 	window.init_imgui();
 
+	// load the texture
+	// ----------------
+	auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
+	auto white_texture_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
+
+	// load shaders
+	// ------------
+	ow::shader_program prog{{
+		{GL_VERTEX_SHADER, "phong_vertex.glsl"},
+		{GL_FRAGMENT_SHADER, "phong_frag.glsl"}
+	}};
+
+	// lights
+	// ------
+	ow::lights_set lights;
+	lights.add_directional_light(std::make_shared<ow::directional_light>(glm::vec3(1.0f, -1.0f, -1.0f)));
+
+	auto spotlight = std::make_shared<ow::spotlight>(
+			camera.get_pos(), camera.get_front(),
+			glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(20.0f)),
+			1.0, 0.07, 0.017
+	);
+	lights.add_spotlight(spotlight);
+
+	prog.use();
+	prog.set("materials_shininess", 32.f);
+	lights.update_all(prog, glm::mat4());
+
+	// Create the parametrical object
+	// ------------------------------
+	parametrical_object object{5};
+	object.add_texture(white_texture);
+	object.add_texture(white_texture_spec);
+
 	// game loop
 	// -----------
 	float delta_time = 0.0f;	// time between current frame and last frame
@@ -82,6 +117,9 @@ int main() {
 		// -----
 		process_input(window, delta_time);
 
+		spotlight->set_pos(camera.get_pos());
+		spotlight->set_dir(camera.get_front());
+
 		// render
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -89,7 +127,29 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ow::check_errors("Failed to clear scr.");
 
-		// ...
+		// activate shader program
+		prog.use();
+
+		// create transformations
+		glm::mat4 view = camera.get_view_matrix();
+		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT));
+		prog.set("view", view);
+		prog.set("proj", proj);
+
+		// update lights
+		lights.update_position_and_direction(prog, view);
+
+		{ // draw object
+			glm::mat4 model{1.0f};
+			model = glm::translate(model, glm::vec3(.3f));
+			model = glm::scale(model, glm::vec3(1.f));
+			prog.set("model", model);
+
+			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+			prog.set("normal_matrix", normal_matrix);
+
+			object.draw(prog);
+		}
 
 		window.render();
 	}
@@ -131,7 +191,7 @@ void framebuffer_size_callback(GLFWwindow*, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow*, double xpos, double ypos) {
+void mouse_callback(GLFWwindow* w, double xpos, double ypos) {
 	auto xposf = static_cast<float>(xpos);
 	auto yposf = static_cast<float>(ypos);
 
@@ -146,7 +206,9 @@ void mouse_callback(GLFWwindow*, double xpos, double ypos) {
 	last_x = xposf;
 	last_y = yposf;
 
-	camera.process_mouse_movement(xoffset, yoffset);
+	if (glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		camera.process_mouse_movement(xoffset, yoffset);
+	}
 }
 
 void scroll_callback(GLFWwindow*, double, double yoffset) {

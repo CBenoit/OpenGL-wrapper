@@ -26,7 +26,7 @@ endif()
 file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
 file(GLOB_RECURSE GUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/*.cpp)
 
-set(IN55_SOURCES src/in55/main.cpp)
+set(IN55_SOURCES src/in55/main.cpp src/in55/parametrical_object.cpp)
 set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
 set(LIGHTS_SOURCES src/examples/lights.cpp)
 set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)

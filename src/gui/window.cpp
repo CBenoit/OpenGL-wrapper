@@ -93,8 +93,6 @@ void gui::window::init_imgui() {
 void gui::window::render() {
 	// imgui
 	// -----
-	static bool open = true;
-	ImGui::ShowDemoWindow(&open);
 	gui::imgui_impl::render();
 	gui::imgui_impl::new_frame();
 

@@ -29,6 +29,7 @@ void process_input(gui::window& window, float dt);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void imgui_config_window(int* number_of_faces);
 
 namespace {
 	// settings
@@ -92,7 +93,7 @@ int main() {
 			glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(20.0f)),
 			1.0, 0.07, 0.017
 	);
-	lights.add_spotlight(spotlight);
+	//lights.add_spotlight(spotlight);
 
 	prog.use();
 	prog.set("materials_shininess", 32.f);
@@ -100,12 +101,13 @@ int main() {
 
 	// Create the parametrical object
 	// ------------------------------
-	parametrical_object object{5};
-	object.add_texture(white_texture);
-	object.add_texture(white_texture_spec);
+	int number_of_faces = 5;
+	auto object = std::make_unique<parametrical_object>(number_of_faces);
+	object->add_texture(white_texture);
+	object->add_texture(white_texture_spec);
 
 	// game loop
-	// -----------
+	// ---------
 	float delta_time = 0.0f;	// time between current frame and last frame
 	float last_frame = 0.0f; // time of last frame
 	while (!window.should_close()) {
@@ -148,7 +150,17 @@ int main() {
 			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 			prog.set("normal_matrix", normal_matrix);
 
-			object.draw(prog);
+			object->draw(prog);
+		}
+
+		//static bool open = true;
+		//ImGui::ShowDemoWindow(&open);
+		int old_number_of_faces = number_of_faces;
+		imgui_config_window(&number_of_faces);
+		if (old_number_of_faces != number_of_faces) {
+			object = std::make_unique<parametrical_object>(number_of_faces);
+			object->add_texture(white_texture);
+			object->add_texture(white_texture_spec);
 		}
 
 		window.render();
@@ -191,7 +203,7 @@ void framebuffer_size_callback(GLFWwindow*, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* w, double xpos, double ypos) {
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	auto xposf = static_cast<float>(xpos);
 	auto yposf = static_cast<float>(ypos);
 
@@ -206,11 +218,27 @@ void mouse_callback(GLFWwindow* w, double xpos, double ypos) {
 	last_x = xposf;
 	last_y = yposf;
 
-	if (glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 		camera.process_mouse_movement(xoffset, yoffset);
 	}
 }
 
 void scroll_callback(GLFWwindow*, double, double yoffset) {
 	camera.process_mouse_scroll(static_cast<float>(yoffset));
+}
+
+void imgui_config_window(int* number_of_faces) {
+	ImGui::SetNextWindowSize(ImVec2(400,200), ImGuiCond_FirstUseEver);
+	static bool open = true;
+	if (!ImGui::Begin("Configuraton", &open)) {
+		// optimization: if the window is collapsed
+		ImGui::End();
+		return;
+	}
+
+	ImGui::PushItemWidth(-120); // Right align, keep 140 pixels for labels
+
+	ImGui::SliderInt("Number of faces", number_of_faces, 3, 30);
+
+	ImGui::End();
 }

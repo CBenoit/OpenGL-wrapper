@@ -1,13 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstdio>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui/imgui.h> // TO GET RID OF
+#include <imgui/imgui.h>
 
 #include <ow/shader_program.hpp>
 #include <ow/camera_fps.hpp>
@@ -29,7 +30,7 @@ void process_input(gui::window& window, float dt);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void imgui_config_window(int* number_of_faces);
+void imgui_config_window(int* number_of_faces, float* angle_x, float* angle_z, std::vector<glm::vec3>& light_colors);
 
 namespace {
 	// settings
@@ -73,8 +74,9 @@ int main() {
 
 	// load the texture
 	// ----------------
-	auto white_texture = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
-	auto white_texture_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
+	auto white_emission = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::emission);
+	auto white_diffuse = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
+	auto white_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
 
 	// load shaders
 	// ------------
@@ -85,26 +87,52 @@ int main() {
 
 	// lights
 	// ------
-	ow::lights_set lights;
-	lights.add_directional_light(std::make_shared<ow::directional_light>(glm::vec3(1.0f, -1.0f, -1.0f)));
+	std::vector<glm::vec3> light_colors;
+	light_colors.reserve(3);
+	for (auto i = 0u; i < 3; ++i) {
+		light_colors.emplace_back(1.0f, 1.0f, 1.0f);
+	}
 
-	auto spotlight = std::make_shared<ow::spotlight>(
-			camera.get_pos(), camera.get_front(),
-			glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(20.0f)),
-			1.0, 0.07, 0.017
-	);
-	//lights.add_spotlight(spotlight);
+	ow::lights_set lights;
+
+	lights.add_directional_light(std::make_shared<ow::directional_light>(
+			glm::vec3(1.0f, -1.0f, -1.0f),
+			glm::vec3(0.2),
+			glm::vec3(0.0),
+			glm::vec3(0.0)
+	));
+
+	// add lamps
+	std::vector<std::shared_ptr<ow::point_light>> point_lights;
+	{
+		glm::vec3 positions[] = {
+				glm::vec3( 3.f,  3.f,  -1.f),
+				glm::vec3( -3.f, 3.f, -1.f),
+				glm::vec3(0.f,  3.f, 3.0f),
+		};
+
+		for (auto& pos : positions) {
+			auto light = std::make_shared<ow::point_light>(pos, 1.0, 0.14, 0.07);
+			lights.add_point_light(light);
+			point_lights.push_back(light);
+		}
+	}
 
 	prog.use();
 	prog.set("materials_shininess", 32.f);
 	lights.update_all(prog, glm::mat4());
 
+	parametrical_object lamp_mesh{2};
+	lamp_mesh.add_texture(white_emission);
+
 	// Create the parametrical object
 	// ------------------------------
 	int number_of_faces = 5;
+	float angle_x = 0;
+	float angle_z = 0;
 	auto object = std::make_unique<parametrical_object>(number_of_faces);
-	object->add_texture(white_texture);
-	object->add_texture(white_texture_spec);
+	object->add_texture(white_diffuse);
+	object->add_texture(white_spec);
 
 	// game loop
 	// ---------
@@ -118,9 +146,6 @@ int main() {
 		// input
 		// -----
 		process_input(window, delta_time);
-
-		spotlight->set_pos(camera.get_pos());
-		spotlight->set_dir(camera.get_front());
 
 		// render
 		// ------
@@ -139,12 +164,27 @@ int main() {
 		prog.set("proj", proj);
 
 		// update lights
-		lights.update_position_and_direction(prog, view);
+		lights.update_all(prog, view);
+
+		// draw lamps
+		for (const auto& pt_light : point_lights) {
+			glm::mat4 model{1.0f};
+			model = glm::translate(model, pt_light->get_pos());
+			model = glm::scale(model, glm::vec3(.2f));
+			prog.set("model", model);
+
+			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+			prog.set("normal_matrix", normal_matrix);
+
+			lamp_mesh.draw(prog);
+		}
 
 		{ // draw object
 			glm::mat4 model{1.0f};
-			model = glm::translate(model, glm::vec3(.3f));
-			model = glm::scale(model, glm::vec3(1.f));
+			//model = glm::translate(model, glm::vec3(0.f));
+			//model = glm::scale(model, glm::vec3(1.f));
+			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
+			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
 			prog.set("model", model);
 
 			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
@@ -153,17 +193,26 @@ int main() {
 			object->draw(prog);
 		}
 
-		//static bool open = true;
-		//ImGui::ShowDemoWindow(&open);
 		int old_number_of_faces = number_of_faces;
-		imgui_config_window(&number_of_faces);
-		if (old_number_of_faces != number_of_faces) {
-			object = std::make_unique<parametrical_object>(number_of_faces);
-			object->add_texture(white_texture);
-			object->add_texture(white_texture_spec);
-		}
+		imgui_config_window(&number_of_faces, &angle_x, &angle_z, light_colors);
 
 		window.render();
+
+		// apply config
+		// ------------
+
+		// parametrical object
+		if (old_number_of_faces != number_of_faces) {
+			object = std::make_unique<parametrical_object>(number_of_faces);
+			object->add_texture(white_diffuse);
+			object->add_texture(white_spec);
+		}
+
+		// light colors
+		for (size_t i = 0; i < light_colors.size(); ++i) {
+			point_lights[i]->set_diffuse(light_colors[i]);
+			point_lights[i]->set_specular(light_colors[i]);
+		}
 	}
 
 	return EXIT_SUCCESS;
@@ -227,8 +276,8 @@ void scroll_callback(GLFWwindow*, double, double yoffset) {
 	camera.process_mouse_scroll(static_cast<float>(yoffset));
 }
 
-void imgui_config_window(int* number_of_faces) {
-	ImGui::SetNextWindowSize(ImVec2(400,200), ImGuiCond_FirstUseEver);
+void imgui_config_window(int* number_of_faces, float* angle_x, float* angle_z, std::vector<glm::vec3>& light_colors) {
+	ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_FirstUseEver);
 	static bool open = true;
 	if (!ImGui::Begin("Configuraton", &open)) {
 		// optimization: if the window is collapsed
@@ -238,7 +287,26 @@ void imgui_config_window(int* number_of_faces) {
 
 	ImGui::PushItemWidth(-120); // Right align, keep 140 pixels for labels
 
+	ImGui::Text("Object");
 	ImGui::SliderInt("Number of faces", number_of_faces, 3, 30);
+
+	ImGui::Separator();
+	ImGui::Text("Model");
+	ImGui::SliderFloat("Angle around X", angle_x, -2.f, 2.f);
+	ImGui::SliderFloat("Angle around Z", angle_z, -2.f, 2.f);
+
+	ImGui::Separator();
+	ImGui::Text("Lights");
+
+	for (size_t i = 0; i < light_colors.size(); ++i) {
+		float col[3] = { light_colors[i].x, light_colors[i].y, light_colors[i].z };
+		char buffer [50];
+		sprintf(buffer, "Light color %ld", i);
+		ImGui::ColorEdit3(buffer, col);
+		light_colors[i].x = col[0];
+		light_colors[i].y = col[1];
+		light_colors[i].z = col[2];
+	}
 
 	ImGui::End();
 }

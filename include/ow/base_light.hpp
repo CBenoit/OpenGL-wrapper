@@ -19,6 +19,14 @@ public:
 		prog.set(uniform_prefix + "specular", m_specular);
 	}
 
+	void set_diffuse(glm::vec3 diffuse) {
+		m_diffuse = diffuse;
+	}
+
+	void set_specular(glm::vec3 specular) {
+		m_specular = specular;
+	}
+
 private:
 	glm::vec3 m_diffuse;
 	glm::vec3 m_specular;

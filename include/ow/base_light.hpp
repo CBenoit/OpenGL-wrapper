@@ -27,6 +27,14 @@ public:
 		m_specular = specular;
 	}
 
+	glm::vec3 get_diffuse() {
+		return m_diffuse;
+	}
+
+	glm::vec3 get_specular() {
+		return m_specular;
+	}
+
 private:
 	glm::vec3 m_diffuse;
 	glm::vec3 m_specular;

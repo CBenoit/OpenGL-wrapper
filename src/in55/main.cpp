@@ -1,36 +1,25 @@
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <cstdio>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <imgui/imgui.h>
 
 #include <ow/shader_program.hpp>
 #include <ow/camera_fps.hpp>
-#include <ow/vertex.hpp>
 #include <ow/lights_set.hpp>
 #include <ow/directional_light.hpp>
 #include <ow/point_light.hpp>
-#include <ow/spotlight.hpp>
-#include <ow/mesh.hpp>
 #include <ow/texture.hpp>
-#include <ow/model.hpp>
 #include <ow/utils.hpp>
 #include <gui/window.hpp>
 
 #include "parametrical_object.hpp"
+#include "lamp.hpp"
+#include "imgui_windows.hpp"
 
 void process_input(gui::window& window, float dt);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void imgui_config_window(int* number_of_faces, float* angle_x, float* angle_z, std::vector<glm::vec3>& light_colors);
 
 namespace {
 	// settings
@@ -74,15 +63,19 @@ int main() {
 
 	// load the texture
 	// ----------------
-	auto white_emission = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::emission);
 	auto white_diffuse = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
 	auto white_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
 
 	// load shaders
 	// ------------
-	ow::shader_program prog{{
+	ow::shader_program phong_prog{{
 		{GL_VERTEX_SHADER, "phong_vertex.glsl"},
 		{GL_FRAGMENT_SHADER, "phong_frag.glsl"}
+	}};
+
+	ow::shader_program lamp_prog{{
+		{GL_VERTEX_SHADER, "lamp_vertex.glsl"},
+		{GL_FRAGMENT_SHADER, "lamp_frag.glsl"}
 	}};
 
 	// lights
@@ -97,7 +90,7 @@ int main() {
 
 	lights.add_directional_light(std::make_shared<ow::directional_light>(
 			glm::vec3(1.0f, -1.0f, -1.0f),
-			glm::vec3(0.2),
+			glm::vec3(.2f),
 			glm::vec3(0.0),
 			glm::vec3(0.0)
 	));
@@ -118,18 +111,18 @@ int main() {
 		}
 	}
 
-	prog.use();
-	prog.set("materials_shininess", 32.f);
-	lights.update_all(prog, glm::mat4());
+	lamp lamp_mesh;
 
-	parametrical_object lamp_mesh{2};
-	lamp_mesh.add_texture(white_emission);
+	phong_prog.use();
+	phong_prog.set("materials_shininess", 32.f);
+	lights.update_all(phong_prog, glm::mat4());
 
 	// Create the parametrical object
 	// ------------------------------
 	int number_of_faces = 5;
 	float angle_x = 0;
 	float angle_z = 0;
+	float scale = 1.f;
 	auto object = std::make_unique<parametrical_object>(number_of_faces);
 	object->add_texture(white_diffuse);
 	object->add_texture(white_spec);
@@ -155,46 +148,45 @@ int main() {
 		ow::check_errors("Failed to clear scr.");
 
 		// activate shader program
-		prog.use();
+		phong_prog.use();
 
 		// create transformations
 		glm::mat4 view = camera.get_view_matrix();
 		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT));
-		prog.set("view", view);
-		prog.set("proj", proj);
+		phong_prog.set("view", view);
+		phong_prog.set("proj", proj);
 
 		// update lights
-		lights.update_all(prog, view);
+		lights.update_all(phong_prog, view);
+
+		{ // draw object
+			glm::mat4 model{1.0f};
+			model = glm::scale(model, glm::vec3(scale));
+			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
+			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
+			phong_prog.set("model", model);
+
+			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
+			phong_prog.set("normal_matrix", normal_matrix);
+
+			object->draw(phong_prog);
+		}
 
 		// draw lamps
+		lamp_prog.use();
 		for (const auto& pt_light : point_lights) {
 			glm::mat4 model{1.0f};
 			model = glm::translate(model, pt_light->get_pos());
 			model = glm::scale(model, glm::vec3(.2f));
-			prog.set("model", model);
+			lamp_prog.set("MVP", proj * view * model);
+			lamp_prog.set("color", pt_light->get_diffuse());
 
-			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
-			prog.set("normal_matrix", normal_matrix);
-
-			lamp_mesh.draw(prog);
+			lamp_mesh.draw(lamp_prog);
 		}
 
-		{ // draw object
-			glm::mat4 model{1.0f};
-			//model = glm::translate(model, glm::vec3(0.f));
-			//model = glm::scale(model, glm::vec3(1.f));
-			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
-			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
-			prog.set("model", model);
-
-			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
-			prog.set("normal_matrix", normal_matrix);
-
-			object->draw(prog);
-		}
-
+		// imgui window
 		int old_number_of_faces = number_of_faces;
-		imgui_config_window(&number_of_faces, &angle_x, &angle_z, light_colors);
+		imgui_config_window(&number_of_faces, &angle_x, &angle_z, &scale, light_colors);
 
 		window.render();
 
@@ -274,39 +266,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 void scroll_callback(GLFWwindow*, double, double yoffset) {
 	camera.process_mouse_scroll(static_cast<float>(yoffset));
-}
-
-void imgui_config_window(int* number_of_faces, float* angle_x, float* angle_z, std::vector<glm::vec3>& light_colors) {
-	ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_FirstUseEver);
-	static bool open = true;
-	if (!ImGui::Begin("Configuraton", &open)) {
-		// optimization: if the window is collapsed
-		ImGui::End();
-		return;
-	}
-
-	ImGui::PushItemWidth(-120); // Right align, keep 140 pixels for labels
-
-	ImGui::Text("Object");
-	ImGui::SliderInt("Number of faces", number_of_faces, 3, 30);
-
-	ImGui::Separator();
-	ImGui::Text("Model");
-	ImGui::SliderFloat("Angle around X", angle_x, -2.f, 2.f);
-	ImGui::SliderFloat("Angle around Z", angle_z, -2.f, 2.f);
-
-	ImGui::Separator();
-	ImGui::Text("Lights");
-
-	for (size_t i = 0; i < light_colors.size(); ++i) {
-		float col[3] = { light_colors[i].x, light_colors[i].y, light_colors[i].z };
-		char buffer [50];
-		sprintf(buffer, "Light color %ld", i);
-		ImGui::ColorEdit3(buffer, col);
-		light_colors[i].x = col[0];
-		light_colors[i].y = col[1];
-		light_colors[i].z = col[2];
-	}
-
-	ImGui::End();
 }

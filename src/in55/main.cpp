@@ -8,6 +8,7 @@
 #include <ow/directional_light.hpp>
 #include <ow/point_light.hpp>
 #include <ow/texture.hpp>
+#include <ow/skybox.hpp>
 #include <ow/utils.hpp>
 #include <gui/window.hpp>
 
@@ -65,6 +66,7 @@ int main() {
 	// ----------------
 	auto white_diffuse = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
 	auto white_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
+    auto skybox = std::make_shared<ow::skybox>("resources/textures/skybox");
 
 	// load shaders
 	// ------------
@@ -175,7 +177,10 @@ int main() {
 			model = glm::scale(model, glm::vec3(scale));
 			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
 			phong_prog.set("model", model);
+			phong_prog.set("skybox", 0);
 
 			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 			phong_prog.set("normal_matrix", normal_matrix);

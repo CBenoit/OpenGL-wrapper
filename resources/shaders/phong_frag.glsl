@@ -8,6 +8,8 @@ in vec2 vertex_tex_coord;
 
 // === material stuff ===
 
+uniform samplerCube skybox;
+
 uniform bool has_diffuse_map;
 uniform bool has_specular_map;
 uniform bool has_emission_map;
@@ -96,12 +98,14 @@ void main() {
 		for (int i = min(nbr_spotlights, MAX_SPOTLIGHTS); i-- > 0;) {
 			result += calcSpotlight(spotlights[i], norm, view_dir);
 		}
+        result *= texture(skybox, reflect(view_dir, vertex_normal)).xyz;
 	}
 
 	// phase 4: emission light
 	if (has_emission_map) {
 		result += vec3(texture(emission_map, vertex_tex_coord));
 	}
+
 
 	frag_color = vec4(result, 1.0);
 }

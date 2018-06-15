@@ -144,13 +144,13 @@ void ow::mesh::_activate_next_texture_unit(const shader_program& prog, int* next
 										   std::vector<std::shared_ptr<ow::texture>> textures,
 										   ow::texture_type tex_type) const {
 	if (current_pass < textures.size()) {
-		glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(*next_unit_to_activate));
+		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(*next_unit_to_activate));
 		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + (*next_unit_to_activate)) + ". ");
 		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
 		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id) + ". ");
 
 		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", true);
-		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate);
+		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate + 1);
 
 		++(*next_unit_to_activate);
 	} else {

@@ -67,7 +67,7 @@ void ow::mesh::draw(const shader_program& prog) const {
 	glBindVertexArray(m_VAO);
 	check_errors("failed to bind VAO. ");
 	size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
-	assert(number_of_passes == 1); // multiple passes not yet functional.
+	//assert(number_of_passes == 1); // multiple passes not yet functional.
 	for (unsigned int i = 0; i < number_of_passes; ++i) {
 		int next_unit_to_activate = 0;
 		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);

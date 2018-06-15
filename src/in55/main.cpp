@@ -13,6 +13,7 @@
 #include <gui/window.hpp>
 
 #include "parametrical_object.hpp"
+#include "cube_object.hpp"
 #include "lamp.hpp"
 #include "imgui_windows.hpp"
 
@@ -80,6 +81,11 @@ int main() {
 		{GL_FRAGMENT_SHADER, "lamp_frag.glsl"}
 	}};
 
+	ow::shader_program skybox_prog{{
+		{GL_VERTEX_SHADER, "skybox_vertex.glsl"},
+		{GL_FRAGMENT_SHADER, "skybox_frag.glsl"}
+	}};
+
 	// lights
 	// ------
 	ow::lights_set lights;
@@ -136,6 +142,8 @@ int main() {
 	auto object = std::make_unique<parametrical_object>(number_of_faces);
 	object->add_texture(white_diffuse);
 	object->add_texture(white_spec);
+	
+    auto cube = std::make_unique<cube_object>();
 
 	// game loop
 	// ---------
@@ -173,14 +181,24 @@ int main() {
 		lights.update_all(phong_prog, view);
 
 		{ // draw object
+            { // draw skybox
+                glDepthMask(GL_FALSE);
+                skybox_prog.use();
+                glm::mat4 model{1.0f};
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
+                cube->draw(skybox_prog);
+                skybox_prog.set("model", model);
+                skybox_prog.set("skybox", 0);
+                glDepthMask(GL_TRUE);
+            }
+	        phong_prog.use();
 			glm::mat4 model{1.0f};
 			model = glm::scale(model, glm::vec3(scale));
 			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
 			phong_prog.set("model", model);
-			phong_prog.set("skybox", 0);
+		    phong_prog.set("skybox", 0);
 
 			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 			phong_prog.set("normal_matrix", normal_matrix);

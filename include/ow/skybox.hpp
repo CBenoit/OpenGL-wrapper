@@ -8,7 +8,6 @@
 namespace ow {
 
 struct skybox {
-	explicit skybox(unsigned int id_) : id(id_) {}
 	explicit skybox(const std::string& filename);
 	skybox(const skybox& other) = delete;
 	skybox(skybox&& other) noexcept;

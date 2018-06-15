@@ -67,7 +67,7 @@ void ow::mesh::draw(const shader_program& prog) const {
 	glBindVertexArray(m_VAO);
 	check_errors("failed to bind VAO. ");
 	size_t number_of_passes = std::max(std::max(m_diffuse_maps.size(), m_specular_maps.size()), m_emission_maps.size());
-	//assert(number_of_passes == 1); // multiple passes not yet functional.
+	assert(number_of_passes <= 1); // multiple passes not yet functional.
 	for (unsigned int i = 0; i < number_of_passes; ++i) {
 		int next_unit_to_activate = 0;
 		_activate_next_texture_unit(prog, &next_unit_to_activate, i, m_diffuse_maps, texture_type::diffuse);
@@ -144,13 +144,13 @@ void ow::mesh::_activate_next_texture_unit(const shader_program& prog, int* next
 										   std::vector<std::shared_ptr<ow::texture>> textures,
 										   ow::texture_type tex_type) const {
 	if (current_pass < textures.size()) {
-		glActiveTexture(GL_TEXTURE1 + static_cast<GLuint>(*next_unit_to_activate));
+		glActiveTexture(GL_TEXTURE0 + static_cast<GLuint>(*next_unit_to_activate));
 		check_errors("error while activating texture unit " + std::to_string(GL_TEXTURE0 + (*next_unit_to_activate)) + ". ");
 		glBindTexture(GL_TEXTURE_2D, textures[current_pass]->id);
 		check_errors("error while binding texture " + std::to_string(textures[current_pass]->id) + ". ");
 
 		prog.set("has_" + textures[current_pass]->type_to_string() + "_map", true);
-		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate + 1);
+		prog.set(textures[current_pass]->type_to_string() + "_map", *next_unit_to_activate);
 
 		++(*next_unit_to_activate);
 	} else {

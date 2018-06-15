@@ -13,8 +13,7 @@
 #include <gui/window.hpp>
 
 #include "parametrical_object.hpp"
-#include "cube_object.hpp"
-#include "lamp.hpp"
+#include "cube.hpp"
 #include "imgui_windows.hpp"
 
 void process_input(gui::window& window, float dt);
@@ -67,7 +66,6 @@ int main() {
 	// ----------------
 	auto white_diffuse = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::diffuse);
 	auto white_spec = std::make_shared<ow::texture>("resources/textures/white.jpg", ow::texture_type::specular);
-    auto skybox = std::make_shared<ow::skybox>("resources/textures/skybox");
 
 	// load shaders
 	// ------------
@@ -93,7 +91,7 @@ int main() {
 	// so that the object is never completely black.
 	lights.add_directional_light(std::make_shared<ow::directional_light>(
 			glm::vec3(1.0f, -1.0f, -1.0f),
-			glm::vec3(.2f),
+			glm::vec3(1.f),
 			glm::vec3(0.0),
 			glm::vec3(0.0)
 	));
@@ -127,7 +125,7 @@ int main() {
 		}
 	}
 
-	lamp lamp_mesh;
+	cube lamp_mesh;
 
 	phong_prog.use();
 	phong_prog.set("materials_shininess", 32.f);
@@ -142,8 +140,25 @@ int main() {
 	auto object = std::make_unique<parametrical_object>(number_of_faces);
 	object->add_texture(white_diffuse);
 	object->add_texture(white_spec);
-	
-    auto cube = std::make_unique<cube_object>();
+
+	// Skybox
+	// ------
+	// create a skybox texture from several images.
+	auto skybox = std::make_shared<ow::skybox>("resources/textures/skybox");
+	// cube wrapping the camera with sky texture.
+	auto skybox_cube = std::make_unique<cube>();
+
+	// bind the skybox texture in the skybox shader program.
+	skybox_prog.use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
+	skybox_prog.set("skybox", 0);
+
+	// configure phong program to handle reflections on the skybox
+	phong_prog.use();
+	glActiveTexture(GL_TEXTURE0 + 15);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
+	phong_prog.set("skybox", 15);
 
 	// game loop
 	// ---------
@@ -168,7 +183,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ow::check_errors("Failed to clear scr.");
 
-		// activate shader program
+		// activate phong shader program
 		phong_prog.use();
 
 		// create transformations
@@ -181,24 +196,11 @@ int main() {
 		lights.update_all(phong_prog, view);
 
 		{ // draw object
-            { // draw skybox
-                glDepthMask(GL_FALSE);
-                skybox_prog.use();
-                glm::mat4 model{1.0f};
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id);
-                cube->draw(skybox_prog);
-                skybox_prog.set("model", model);
-                skybox_prog.set("skybox", 0);
-                glDepthMask(GL_TRUE);
-            }
-	        phong_prog.use();
 			glm::mat4 model{1.0f};
 			model = glm::scale(model, glm::vec3(scale));
 			model = glm::rotate(model, angle_x, glm::vec3(1.0, 0.0, 0.0));
 			model = glm::rotate(model, angle_z, glm::vec3(0.0, 0.0, 1.0));
 			phong_prog.set("model", model);
-		    phong_prog.set("skybox", 0);
 
 			glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(view * model)));
 			phong_prog.set("normal_matrix", normal_matrix);
@@ -216,6 +218,17 @@ int main() {
 			lamp_prog.set("color", pt_light->get_diffuse());
 
 			lamp_mesh.draw(lamp_prog);
+		}
+
+		{ // draw skybox as last
+			skybox_prog.use();
+			glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+			glActiveTexture(GL_TEXTURE0); // TO REMOVE
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id); // TO REMOVE
+			glm::mat4 no_translation_view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
+			skybox_prog.set("VP", proj * no_translation_view);
+			skybox_cube->draw(skybox_prog);
+			glDepthFunc(GL_LESS); // set back to default
 		}
 
 		// imgui window

@@ -3,13 +3,13 @@
 #include <ow/VBO.hpp>
 #include <ow/shader_program.hpp>
 
-class lamp {
+class cube {
 public:
-	lamp() noexcept;
-	lamp(const lamp& other) = delete;
-	lamp(lamp&& other) noexcept;
-	~lamp();
-	lamp& operator=(const lamp& other) = delete;
+	cube() noexcept;
+	cube(const cube& other) = delete;
+	cube(cube&& other) noexcept;
+	~cube();
+	cube& operator=(const cube& other) = delete;
 
 	void draw(const ow::shader_program& prog) const;
 

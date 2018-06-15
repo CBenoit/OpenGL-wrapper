@@ -1,8 +1,8 @@
-#include "lamp.hpp"
+#include "cube.hpp"
 
 #include <vector>
 
-lamp::lamp() noexcept
+cube::cube() noexcept
 	: m_VAO(0)
 	, m_EBO(0)
 	, m_VBO()
@@ -86,20 +86,20 @@ lamp::lamp() noexcept
 	glBindVertexArray(0);
 }
 
-lamp::lamp(lamp&& other) noexcept
+cube::cube(cube&& other) noexcept
 		: m_VAO{std::exchange(other.m_VAO, 0)}
 		, m_EBO{std::exchange(other.m_EBO, 0)}
 		, m_VBO{std::move(other.m_VBO)}
 		, m_indices_size(other.m_indices_size){}
 
-lamp::~lamp() {
+cube::~cube() {
 	glDeleteVertexArrays(1, &m_VAO);
 	ow::check_errors("error while deleting VAO. ");
 	glDeleteBuffers(1, &m_EBO);
 	ow::check_errors("error while deleting EBO. ");
 }
 
-void lamp::draw(const ow::shader_program& prog) const {
+void cube::draw(const ow::shader_program& prog) const {
 	prog.use();
 
 	glBindVertexArray(m_VAO);

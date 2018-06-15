@@ -223,8 +223,6 @@ int main() {
 		{ // draw skybox as last
 			skybox_prog.use();
 			glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-			glActiveTexture(GL_TEXTURE0); // TO REMOVE
-			glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->id); // TO REMOVE
 			glm::mat4 no_translation_view = glm::mat4(glm::mat3(view)); // remove translation from the view matrix
 			skybox_prog.set("VP", proj * no_translation_view);
 			skybox_cube->draw(skybox_prog);

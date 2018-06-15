@@ -6,7 +6,7 @@
 
 void imgui_config_window(int* number_of_faces, float* angle_x, float* angle_z, float* scale,
                          std::vector<glm::vec3>* lamp_colors, glm::vec3* spotlight_color) {
-	ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 	static bool open = true;
 	if (!ImGui::Begin("Configuraton", &open)) {
 		// optimization: if the window is collapsed

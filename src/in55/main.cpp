@@ -80,14 +80,9 @@ int main() {
 
 	// lights
 	// ------
-	std::vector<glm::vec3> light_colors;
-	light_colors.reserve(3);
-	for (auto i = 0u; i < 3; ++i) {
-		light_colors.emplace_back(1.0f, 1.0f, 1.0f);
-	}
-
 	ow::lights_set lights;
 
+	// so that the object is never completely black.
 	lights.add_directional_light(std::make_shared<ow::directional_light>(
 			glm::vec3(1.0f, -1.0f, -1.0f),
 			glm::vec3(.2f),
@@ -95,17 +90,30 @@ int main() {
 			glm::vec3(0.0)
 	));
 
+	glm::vec3 spotlight_color{ 0.f, 0.f, 0.f };
+	auto spotlight = std::make_shared<ow::spotlight>(
+			spotlight_color, spotlight_color,
+			camera.get_pos(), camera.get_front(),
+			glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(20.0f)),
+			1.0, 0.07, 0.017
+	);
+	lights.add_spotlight(spotlight);
+
 	// add lamps
+	std::vector<glm::vec3> lamp_colors;
 	std::vector<std::shared_ptr<ow::point_light>> point_lights;
 	{
-		glm::vec3 positions[] = {
+		std::array positions = {
 				glm::vec3( 3.f,  3.f,  -1.f),
 				glm::vec3( -3.f, 3.f, -1.f),
 				glm::vec3(0.f,  3.f, 3.0f),
 		};
+		lamp_colors.reserve(positions.size());
 
 		for (auto& pos : positions) {
-			auto light = std::make_shared<ow::point_light>(pos, 1.0, 0.14, 0.07);
+			glm::vec3 color{ 1.0f, 1.0f, 1.0f };
+			lamp_colors.push_back(color);
+			auto light = std::make_shared<ow::point_light>(color, color, pos, 1.0, 0.14, 0.07);
 			lights.add_point_light(light);
 			point_lights.push_back(light);
 		}
@@ -139,6 +147,9 @@ int main() {
 		// input
 		// -----
 		process_input(window, delta_time);
+
+		spotlight->set_pos(camera.get_pos());
+		spotlight->set_dir(camera.get_front());
 
 		// render
 		// ------
@@ -186,7 +197,7 @@ int main() {
 
 		// imgui window
 		int old_number_of_faces = number_of_faces;
-		imgui_config_window(&number_of_faces, &angle_x, &angle_z, &scale, light_colors);
+		imgui_config_window(&number_of_faces, &angle_x, &angle_z, &scale, &lamp_colors, &spotlight_color);
 
 		window.render();
 
@@ -201,10 +212,12 @@ int main() {
 		}
 
 		// light colors
-		for (size_t i = 0; i < light_colors.size(); ++i) {
-			point_lights[i]->set_diffuse(light_colors[i]);
-			point_lights[i]->set_specular(light_colors[i]);
+		for (size_t i = 0; i < lamp_colors.size(); ++i) {
+			point_lights[i]->set_diffuse(lamp_colors[i]);
+			point_lights[i]->set_specular(lamp_colors[i]);
 		}
+		spotlight->set_diffuse(spotlight_color);
+		spotlight->set_specular(spotlight_color);
 	}
 
 	return EXIT_SUCCESS;

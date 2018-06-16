@@ -16,6 +16,10 @@ uniform sampler2D specular_map;
 uniform sampler2D emission_map;
 uniform float materials_shininess;
 
+// === skybox ===
+
+uniform samplerCube skybox;
+
 // === light stuff ===
 
 #define MAX_DIR_LIGHTS 5
@@ -96,6 +100,8 @@ void main() {
 		for (int i = min(nbr_spotlights, MAX_SPOTLIGHTS); i-- > 0;) {
 			result += calcSpotlight(spotlights[i], norm, view_dir);
 		}
+
+        result *= texture(skybox, reflect(view_dir, vertex_normal)).xyz;
 	}
 
 	// phase 4: emission light

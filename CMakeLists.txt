@@ -46,7 +46,6 @@ set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
 add_executable(
         example_getting_started
         ${GETTING_STARTED_SOURCES}
-        ${OW_SOURCES}
 )
 target_link_libraries(example_getting_started ow)
 
@@ -55,7 +54,6 @@ set(LIGHTS_SOURCES src/examples/lights.cpp)
 add_executable(
         example_lights
         ${LIGHTS_SOURCES}
-        ${OW_SOURCES}
 )
 target_link_libraries(example_lights ow)
 
@@ -64,6 +62,5 @@ set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)
 add_executable(
         example_model_loading
         ${MODEL_LOADING_SOURCES}
-        ${OW_SOURCES}
 )
 target_link_libraries(example_model_loading ow)

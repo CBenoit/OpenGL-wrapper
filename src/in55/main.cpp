@@ -71,7 +71,7 @@ int main() {
 	// ------------
 	ow::shader_program phong_prog{{
 		{GL_VERTEX_SHADER, "phong_vertex.glsl"},
-		{GL_FRAGMENT_SHADER, "phong_frag.glsl"}
+		{GL_FRAGMENT_SHADER, "phong_skybox_frag.glsl"}
 	}};
 
 	ow::shader_program lamp_prog{{

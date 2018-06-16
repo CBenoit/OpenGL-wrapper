@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
+project(opengl_wrapper)
 set(CMAKE_CXX_STANDARD 17)
-
-project(IN55_solids)
-
-project(example_getting_started)
-project(example_lights)
-project(example_model_loading)
 
 find_package(OpenGL REQUIRED)
 find_package(assimp REQUIRED)
@@ -23,45 +18,52 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 endif()
 
-file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
-file(GLOB_RECURSE GUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/*.cpp)
-
-set(IN55_SOURCES src/in55/main.cpp src/in55/parametrical_object.cpp src/in55/cube.cpp src/in55/imgui_windows.cpp)
-set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
-set(LIGHTS_SOURCES src/examples/lights.cpp)
-set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)
-
 include_directories(
         include/
         SYSTEM external/
 )
 
-add_executable(
-        IN55_solids
-        ${IN55_SOURCES}
-        ${OW_SOURCES}
-        ${GUI_SOURCES}
-)
+# == ow lib ==
+file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
+add_library(ow ${OW_SOURCES})
+target_link_libraries(ow stb glad ${ASSIMP_LIBRARIES} ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 
+# == gui lib ==
+file(GLOB_RECURSE GUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/*.cpp)
+add_library(gui ${GUI_SOURCES})
+target_link_libraries(ow imgui glfw)
+
+# == IN55 parametrical object project ==
+set(IN55_SOURCES src/in55/main.cpp src/in55/parametrical_object.cpp src/in55/cube.cpp src/in55/imgui_windows.cpp)
+add_executable(
+        in55_parametrical_object
+        ${IN55_SOURCES}
+)
+target_link_libraries(in55_parametrical_object ow gui)
+
+# == getting started example ==
+set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
 add_executable(
         example_getting_started
         ${GETTING_STARTED_SOURCES}
         ${OW_SOURCES}
 )
+target_link_libraries(example_getting_started ow)
 
+# == lighting example ==
+set(LIGHTS_SOURCES src/examples/lights.cpp)
 add_executable(
         example_lights
         ${LIGHTS_SOURCES}
         ${OW_SOURCES}
 )
+target_link_libraries(example_lights ow)
 
+# == model loading example ==
+set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)
 add_executable(
         example_model_loading
         ${MODEL_LOADING_SOURCES}
         ${OW_SOURCES}
 )
-
-target_link_libraries(IN55_solids imgui stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
-target_link_libraries(example_getting_started stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
-target_link_libraries(example_lights stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
-target_link_libraries(example_model_loading stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
+target_link_libraries(example_model_loading ow)

@@ -27,7 +27,6 @@ file(GLOB_RECURSE OW_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/ow/*.cpp)
 file(GLOB_RECURSE GUI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/*.cpp)
 
 set(IN55_SOURCES src/in55/main.cpp src/in55/parametrical_object.cpp src/in55/cube.cpp src/in55/imgui_windows.cpp)
-set(TX52_SOURCES src/tx52/main.cpp)
 set(GETTING_STARTED_SOURCES src/examples/getting_started.cpp)
 set(LIGHTS_SOURCES src/examples/lights.cpp)
 set(MODEL_LOADING_SOURCES src/examples/model_loading.cpp)
@@ -40,13 +39,6 @@ include_directories(
 add_executable(
         IN55_solids
         ${IN55_SOURCES}
-        ${OW_SOURCES}
-        ${GUI_SOURCES}
-)
-
-add_executable(
-        TX52_eye_tracking
-        ${TX52_SOURCES}
         ${OW_SOURCES}
         ${GUI_SOURCES}
 )
@@ -70,7 +62,6 @@ add_executable(
 )
 
 target_link_libraries(IN55_solids imgui stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
-target_link_libraries(TX52_eye_tracking imgui stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_getting_started stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_lights stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})
 target_link_libraries(example_model_loading stb glad ${ASSIMP_LIBRARIES} glfw ${OPENGL_LIBRARY} ${CMAKE_DL_LIBS})

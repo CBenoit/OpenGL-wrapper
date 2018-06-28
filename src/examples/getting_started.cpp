@@ -22,14 +22,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCREEN_WIDTH = 800;
+const unsigned int SCREEN_HEIGHT = 600;
 
 // initialize camera system
 // ------------------------
 ow::camera_fps camera{glm::vec3(0, 0, 3)};
-float last_x = static_cast<float>(SCR_WIDTH) / 2.f;
-float last_y = static_cast<float>(SCR_HEIGHT) / 2.f;
+float last_x = static_cast<float>(SCREEN_WIDTH) / 2.f;
+float last_y = static_cast<float>(SCREEN_HEIGHT) / 2.f;
 bool first_mouse = true;
 
 int main() {
@@ -44,7 +44,7 @@ int main() {
 #endif
 
 	// glfw window creation
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Getting started", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Getting started", nullptr, nullptr);
 	if (window == nullptr) {
 		ow::logger << "Failed to create GLFW winow" << std::endl;
 		glfwTerminate();
@@ -222,7 +222,7 @@ int main() {
 
 		// create transformations
 		glm::mat4 view = camera.get_view_matrix();
-		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT));
+		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT));
 
 		// Seeing as we only have a single  VAO there's
 		// no need to bind it every time, but we'll do

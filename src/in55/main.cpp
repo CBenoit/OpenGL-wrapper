@@ -24,8 +24,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 namespace {
 	// settings
-	constexpr unsigned int SCR_WIDTH = 800;
-	constexpr unsigned int SCR_HEIGHT = 600;
+	constexpr unsigned int SCREEN_WIDTH = 800;
+	constexpr unsigned int SCREEN_HEIGHT = 600;
 
 	// initialize camera system
 	// ------------------------
@@ -36,7 +36,7 @@ namespace {
 }
 
 int main() {
-	gui::window window{ "IN55", SCR_WIDTH, SCR_HEIGHT, nullptr, nullptr };
+	gui::window window{ "IN55", SCREEN_WIDTH, SCREEN_HEIGHT, nullptr, nullptr };
 	if (window.invalid()) {
 		ow::logger << "Failed to create window" << std::endl;
 		return EXIT_FAILURE;
@@ -188,7 +188,7 @@ int main() {
 
 		// create transformations
 		glm::mat4 view = camera.get_view_matrix();
-		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT));
+		glm::mat4 proj = camera.get_proj_matrix(static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT));
 		phong_prog.set("view", view);
 		phong_prog.set("proj", proj);
 
